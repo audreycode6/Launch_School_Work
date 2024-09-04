@@ -40,10 +40,26 @@ def empty_squares(board):
     return [key for key, value in board.items()
             if value == INITIAL_MARKER]
 
+def join_or(valid_choices, delimiter=', ', ending='or'):
+  lst = [str(num) for num in valid_choices]
+  length = len(lst)
+  
+  if length < 1:
+    formatted_lst = ''
+  elif length == 1:
+    formatted_lst = lst[0]
+  elif length == 2:
+    formatted_lst = f"{lst[0]} {ending} {lst[1]}"
+  else:
+    formatted_lst = delimiter.join(lst)
+    formatted_lst = f"{formatted_lst[:-1]}{ending} {formatted_lst[-1]}"
+    
+  return formatted_lst
+
 def player_choose_square(board):
     while True:
         valid_choices = [str(num) for num in empty_squares(board)]
-        prompt(f'Choose a square ({', '.join(valid_choices)}):')
+        prompt(f'Choose a square: {join_or(valid_choices)}')
         square = input().strip()
         if square in valid_choices:
             break
