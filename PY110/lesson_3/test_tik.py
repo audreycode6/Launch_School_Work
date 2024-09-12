@@ -1,4 +1,5 @@
-''' Tiktactoe game: User plays on terminal with computer.
+''' MY WAY: - diff: computer_protect/ computer_choose_square ... redundant code
+Tiktactoe game: User plays on terminal with computer.
 Computer plays offensively and defensively. 
 Player to get score == MATCH_WON wins match.'''
 
@@ -76,6 +77,7 @@ def display_board(board, match):
     print("")
 
 
+
 def empty_squares(board):
     """ Return list of available squares (aka INITIAL_MARKER) on board """
     return [key for key, value in board.items() if value == INITIAL_MARKER]
@@ -127,43 +129,66 @@ def player_choose_square(board):
 
     board[int(square)] = HUMAN_MARKER
 
-def comp_protect(line, board, marker):
-    '''computer choose best choice: 
-    return square number if chance for offense (marker = COMPUTER...)
-    or chance to defend (marker = HUMAN...)
-    else None'''
-    markers_in_line = [board[square] for square in line]
 
-    if markers_in_line.count(marker) == 2:
-        for square in line:
-            if board[square] == INITIAL_MARKER:
-                return square
-    return None
+def comp_offense(board):
+    ''' Return square for computer to chose for turn if immediate threat exists for computer,
+    (i.e player has 2 squares and board has open spot for 3rd winning spot for player);
+    else False '''
+    target_elem = None
+
+    for line in WINNING_LINES:
+        count_comp = 0
+        count_intitial = 0
+        for elem in line:
+            if board[elem] == COMPUTER_MARKER:
+                count_comp += 1
+            if board[elem] == INITIAL_MARKER: # empty space
+                count_intitial += 1
+                target_elem = elem
+
+            if (count_comp == 2 and count_intitial == 1): # chance for offense
+                return target_elem
+    return False  # no immediate threat
+
+
+def comp_defend(board):
+    ''' Return square for computer to choose if chance for winning, else False:
+    (i.e computer has 2 squares and last square to win is empty) '''
+    target_elem = None
+    for line in WINNING_LINES:
+        count_player = 0
+        count_intitial = 0
+        for elem in line:
+            if board[elem] == HUMAN_MARKER:
+                count_player += 1
+            if board[elem] == INITIAL_MARKER: # empty square
+                count_intitial += 1
+                target_elem = elem
+
+            if (count_player == 2 and count_intitial == 1): # chance to defend
+                return target_elem
+
+    return False  # no immediate threat
 
 
 def computer_chooses_square(board):
     ''' Update board with computers choice:
     options in order of priority: offense move, defense moove, square 5, or random '''
-    square = None
+    if board_full(board):
+        return
 
-    for line in WINNING_LINES:
-        square = comp_protect(line, board, COMPUTER_MARKER)
-        if square: # offense opportunity
-            break
-
-    if not square:
-        for line in WINNING_LINES:
-            square = comp_protect(line, board, HUMAN_MARKER)
-            if square: # defend
-                break
-
-    if not square:
+    if comp_offense(board):
+        square = comp_offense(board)
+    elif comp_defend(board):
+        square = comp_defend(board)
+    else:
         if board[5] == INITIAL_MARKER:
             square = 5
         else:
             square = random.choice(empty_squares(board))
 
     board[square] = COMPUTER_MARKER
+
 
 def board_full(board):
     ''' Return bool if board has empty squares or not '''
@@ -215,6 +240,7 @@ def display_round(player_score, computer_score):
 
 def match_won(player_score, computer_score):
     '''Return bool: T is a player won the match, else F'''
+    # if (player_score == MATCH_WON) or (computer_score == MATCH_WON):
     if MATCH_WON in [player_score, computer_score]:
         return True
     return False
