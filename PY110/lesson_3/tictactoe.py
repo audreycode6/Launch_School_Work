@@ -1,12 +1,12 @@
 ''' Tiktactoe game: User plays on terminal with computer.
 Computer plays offensively and defensively. 
-Player to get score == MATCH_WON wins match.'''
+Player to get their score == MATCH_WON wins match.'''
 
 import os
 import random
 import time
 
-FIRST_PLAYER = 'Choose' # or 'Player' or 'Computer'
+FIRST_PLAYER = None # or 'Player' or 'Computer'
 INITIAL_MARKER = " "
 HUMAN_MARKER = "X"
 COMPUTER_MARKER = "O"
@@ -38,15 +38,37 @@ def error_prompt():
     print('\n!!! ERROR: Invalid input, try again. !!! \n')
 
 
+def example_pick_squares():
+    '''Output example of grid with corresponding number positions.'''
+    prompt('Each round you will be asked to pick a'
+           ' number that aligns with the positions in the box grid.')
+    print()
+    print("EXAMPLE:")
+    print("     |     |")
+    print(f"  {1}  |  {2}  |  {3}")
+    print("     |     |")
+    print("-----+-----+-----")
+    print("     |     |")
+    print(f"  {4}  |  {5}  |  {6}")
+    print("     |     |")
+    print("-----+-----+-----")
+    print("     |     |")
+    print(f"  {7}  |  {8}  |  {9}")
+    print("     |     |")
+    print("")
+
+
 def intro_prompt():
-    ''' Output welcome message, intro and objective of game. '''
+    ''' Output welcome message, intro, and objective of game. '''
     print()
-    display_header("Welcome to Tik Tac Toe.")
+    display_header("WELCOME TO TIC TAC TOE")
     print()
+    example_pick_squares()
     prompt('Get 3 of your marks in a line (vertically, horizontally, or diagonally).')
     prompt(f"First player to reach {MATCH_WON} wins, wins the match!")
-    prompt("Press Enter to start.")
-    input()
+    print()
+    time.sleep(1)
+    input("==> Press 'Enter' to continue.")
 
 
 def initialize_board():
@@ -101,9 +123,12 @@ def string_available_squares(valid_choices, delimiter=", ", ending="or"):
 
 def choose_first_player(current_player):
     ''' Return the users choice for who will be the first player to start match
-    ('Computer' or 'Player') '''
+    ('Computer' or 'Player')
+    After match starts players will alternate turns until the match ends.
+    '''
     while True:
-        prompt('Choose which player goes first. Enter C for computer or P for yourself.')
+        print()
+        prompt('Choose which player will start the match. Enter C for computer or P for yourself.')
         choice = input('c or p: ').casefold()
         if choice == 'p':
             current_player = 'Player'
@@ -227,6 +252,7 @@ def display_match_end(winner, match, player_score, computer_score, tie_score):
     time.sleep(1.9)
     os.system("clear")
     display_header("FINAL SCORES")
+    print()
     print(f"Player: {player_score}")
     print(f'Computer: {computer_score}')
     if tie_score != 0:
@@ -235,7 +261,9 @@ def display_match_end(winner, match, player_score, computer_score, tie_score):
 
 def play_again():
     ''' Ask player if they would like to play again:
-    y -> new match, n -> terminate game '''
+        - y -> new match
+        - n -> terminate game 
+    '''
     valid_answer = ['y', 'n']
     while True:
         print()
@@ -267,7 +295,7 @@ def play_tic_tac_toe():
 
     intro_prompt()
 
-    if FIRST_PLAYER == 'Choose':
+    if FIRST_PLAYER is None:
         current_player = choose_first_player(current_player)
 
     while True:
