@@ -6,11 +6,20 @@ import os
 import random
 import time
 
+# FIRST_PLAYER: alter to change who the first player is
+#     'None' == players picks who goes first,
+#     'Player' == player goes first
+#     'Computer' == computer goes first
 FIRST_PLAYER = None # or 'Player' or 'Computer'
 INITIAL_MARKER = " "
 HUMAN_MARKER = "X"
 COMPUTER_MARKER = "O"
-MATCH_WON = 3
+PLAYER_WIN = ['X', 'X', 'X']
+COMPUTER_WIN = ['O', 'O', 'O']
+EXAMPLE_BOARD = {num: num for num in range(1,10)}
+FIRST_ROUND = 1
+CENTER_SQUARE = 5
+MATCH_WON = 3 # alter to change number of wins needed to win match
 WINNING_LINES = [
     [1, 2, 3], # horizontal
     [4, 5, 6],
@@ -30,7 +39,7 @@ def prompt(message):
 
 def display_header(message):
     ''' Output formated header message '''
-    print(f"    * {message} *    ")
+    print(f"\n    * {message} *    \n")
 
 
 def error_prompt():
@@ -38,35 +47,16 @@ def error_prompt():
     print('\n!!! ERROR: Invalid input, try again. !!! \n')
 
 
-def example_pick_squares():
-    '''Output example of grid with corresponding number positions.'''
-    prompt('Each round you will be asked to pick a'
-           ' number that aligns with the positions in the box grid.')
-    print()
-    print("EXAMPLE:")
-    print("     |     |")
-    print(f"  {1}  |  {2}  |  {3}")
-    print("     |     |")
-    print("-----+-----+-----")
-    print("     |     |")
-    print(f"  {4}  |  {5}  |  {6}")
-    print("     |     |")
-    print("-----+-----+-----")
-    print("     |     |")
-    print(f"  {7}  |  {8}  |  {9}")
-    print("     |     |")
-    print("")
-
-
 def intro_prompt():
     ''' Output welcome message, intro, and objective of game. '''
-    print()
+
     display_header("WELCOME TO TIC TAC TOE")
-    print()
-    example_pick_squares()
+    prompt('Each round you will be asked to pick a'
+           ' number that aligns with the positions in the box grid. \n')
+    print('EXAMPLE BOARD:')
+    display_board(EXAMPLE_BOARD, 'Example', False)
     prompt('Get 3 of your marks in a line (vertically, horizontally, or diagonally).')
-    prompt(f"First player to reach {MATCH_WON} wins, wins the match!")
-    print()
+    prompt(f"First player to reach {MATCH_WON} wins, wins the match! \n")
     time.sleep(1)
     input("==> Press 'Enter' to continue.")
 
@@ -76,13 +66,13 @@ def initialize_board():
     return {square: INITIAL_MARKER for square in range(1, 10)}
 
 
-def display_board(board, match):
+def display_board(board, match, display=True):
     """ Output board to display in game: formatted and interpolated
     with dictionary awaiting user input """
-    os.system("clear")
-
-    prompt(f"You are {HUMAN_MARKER}. Computer is {COMPUTER_MARKER}.")
-    display_header(f"Round {match}")
+    if display:
+        os.system("clear")
+        prompt(f"You are {HUMAN_MARKER}. Computer is {COMPUTER_MARKER}.")
+        display_header(f"Round {match}")
     print("")
     print("     |     |")
     print(f"  {board[1]}  |  {board[2]}  |  {board[3]}")
@@ -168,7 +158,11 @@ def comp_protect(line, board, marker):
 
 def computer_chooses_square(board):
     ''' Update board with computers choice:
-    options in order of priority: offense move, defense moove, square 5, or random '''
+    options in order of priority:
+        offense move,
+        defense moove,
+        center square,
+        or random '''
     square = None
 
     for line in WINNING_LINES:
@@ -183,8 +177,8 @@ def computer_chooses_square(board):
                 break
 
     if not square:
-        if board[5] == INITIAL_MARKER:
-            square = 5
+        if board[CENTER_SQUARE] == INITIAL_MARKER:
+            square = CENTER_SQUARE
         else:
             square = random.choice(empty_squares(board))
 
@@ -194,24 +188,24 @@ def board_full(board):
     ''' Return bool if board has empty squares or not '''
     return len(empty_squares(board)) == 0
 
+def check_winning_line(board, line):
+    '''helper func to detect winner:
+    determine if winning line on board is all player markers
+    or computer markers, if none it is a tie. return the result'''
+    current_line = [board[elem] for elem in line]
+    if current_line == PLAYER_WIN:
+        return 'Player'
+    if current_line == COMPUTER_WIN:
+        return 'Computer'
+    return None
+
 
 def detect_winner(board):
-    """ Return string of winner or falsy None value if tie """
+    """ Return string of winner or None if tie """
     for line in WINNING_LINES:
-        sq1, sq2, sq3 = line
-        if (
-            board[sq1] == HUMAN_MARKER
-            and board[sq2] == HUMAN_MARKER
-            and board[sq3] == HUMAN_MARKER
-        ):
-            return "Player"
-        if (
-            board[sq1] == COMPUTER_MARKER
-            and board[sq2] == COMPUTER_MARKER
-            and board[sq3] == COMPUTER_MARKER
-        ):
-            return "Computer"
-
+        line_result = check_winning_line(board, line)
+        if line_result is not None:
+            return line_result
     return None  # Tie
 
 
@@ -232,27 +226,33 @@ def someone_won(board):
     """ Return boolean eval of detect_winner()'s value: True if someone won, else False """
     return bool(detect_winner(board))
 
+def player_points(round_winner, player_score, computer_score):
+    ''' increase winning players score and return scores so
+    that play_tic_tac_toe() keeps track of scores '''
+    if round_winner == "Player":
+        player_score += 1
+    elif round_winner == "Computer":
+        computer_score += 1
+    return player_score, computer_score
+
 
 def display_round(player_score, computer_score):
     ''' Output current score for round for player and computer '''
     print(f"CURRENT SCORE: Player {player_score} | Computer {computer_score}")
-    time.sleep(3.8)
+    time.sleep(1.9)
 
 def match_won(player_score, computer_score):
     '''Return bool: T is a player won the match, else F'''
-    if MATCH_WON in [player_score, computer_score]:
-        return True
-    return False
+    return MATCH_WON in [player_score, computer_score]
+
 
 def display_match_end(winner, match, player_score, computer_score, tie_score):
     ''' Output match results: overall winner, total scores, match rounds'''
-    print()
     display_header("MATCH OVER")
-    print(f"{winner} wins best out of {match} rounds!\n")
+    print(f"{winner} wins best out of {match} rounds!")
     time.sleep(1.9)
     os.system("clear")
     display_header("FINAL SCORES")
-    print()
     print(f"Player: {player_score}")
     print(f'Computer: {computer_score}')
     if tie_score != 0:
@@ -313,15 +313,12 @@ def play_tic_tac_toe():
         display_board(board, match)
 
         if someone_won(board):
-            if detect_winner(board) == "Player":
-                player_score += 1
-            elif detect_winner(board) == "Computer":
-                computer_score += 1
-
+            winner = detect_winner(board)
+            if winner in ['Player', 'Computer']:
+                player_score, computer_score = player_points(winner, player_score, computer_score)
             if match_won(player_score, computer_score):
                 break
-
-            prompt(f"{detect_winner(board)} won!")
+            prompt(f"{winner} won!")
 
         else:
             prompt("It's a tie!")
