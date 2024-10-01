@@ -188,25 +188,24 @@ def board_full(board):
     ''' Return bool if board has empty squares or not '''
     return len(empty_squares(board)) == 0
 
-def check_winning_line(board, line):
-    '''helper func to detect winner:
-    determine if winning line on board is all player markers
-    or computer markers, if none it is a tie. return the result'''
-    current_line = [board[elem] for elem in line]
-    if current_line == PLAYER_WIN:
-        return 'Player'
-    if current_line == COMPUTER_WIN:
-        return 'Computer'
-    return None
 
+def check_winning_line(board, line, marker):
+    '''helper func to detect winner:
+    determine if winning line on board is all player markers 
+    or computer markers; 
+    return bool if all sq's in line belong to a marker'''
+    squares_in_line = [board[sq] == marker for sq in line]
+    return all(squares_in_line)
 
 def detect_winner(board):
     """ Return string of winner or None if tie """
     for line in WINNING_LINES:
-        line_result = check_winning_line(board, line)
-        if line_result is not None:
-            return line_result
-    return None  # Tie
+        if check_winning_line(board, line, HUMAN_MARKER):
+            return 'Player'
+        if check_winning_line(board, line, COMPUTER_MARKER):
+            return 'Computer'
+
+    return None # Tie
 
 
 def alternate_player(current_player):
@@ -334,3 +333,4 @@ def play_tic_tac_toe():
         play_again()
 
 play_tic_tac_toe() # invoke game
+
