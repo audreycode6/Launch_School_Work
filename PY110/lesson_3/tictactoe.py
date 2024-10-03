@@ -49,13 +49,14 @@ def error_prompt():
 
 def intro_prompt():
     ''' Output welcome message, intro, and objective of game. '''
-
+    os.system('clear')
     display_header("WELCOME TO TIC TAC TOE")
     prompt('Each round you will be asked to pick a'
            ' number that aligns with the positions in the box grid. \n')
     print('EXAMPLE BOARD:')
     display_board(EXAMPLE_BOARD, 'Example', False)
-    prompt('Get 3 of your marks in a line (vertically, horizontally, or diagonally).')
+    prompt('Get 3 of your marks in a line '
+           '(vertically, horizontally, or diagonally).')
     prompt(f"First player to reach {MATCH_WON} wins, wins the match! \n")
     time.sleep(1)
     input("==> Press 'Enter' to continue.")
@@ -106,7 +107,8 @@ def string_available_squares(valid_choices, delimiter=", ", ending="or"):
         formatted_choices = f"{valid_choices[0]} {ending} {valid_choices[1]}"
     else:
         formatted_choices = delimiter.join(valid_choices)
-        formatted_choices = f"{formatted_choices[:-1]}{ending} {formatted_choices[-1]}"
+        formatted_choices = (f"{formatted_choices[:-1]}"
+                             f"{ending} {formatted_choices[-1]}")
 
     return formatted_choices
 
@@ -118,7 +120,8 @@ def choose_first_player(current_player):
     '''
     while True:
         print()
-        prompt('Choose which player will start the match. Enter C for computer or P for yourself.')
+        prompt('Choose which player will start the match.'
+               ' Enter C for computer or P for yourself.')
         choice = input('c or p: ').casefold()
         if choice == 'p':
             current_player = 'Player'
@@ -222,7 +225,8 @@ def choose_square(board, current_player):
 
 
 def someone_won(board):
-    """ Return boolean eval of detect_winner()'s value: True if someone won, else False """
+    """ Return boolean eval of detect_winner()'s value:
+    True if someone won, else False """
     return bool(detect_winner(board))
 
 def player_points(round_winner, player_score, computer_score):
@@ -314,7 +318,8 @@ def play_tic_tac_toe():
         if someone_won(board):
             winner = detect_winner(board)
             if winner in ['Player', 'Computer']:
-                player_score, computer_score = player_points(winner, player_score, computer_score)
+                player_score, computer_score = player_points(
+                    winner, player_score, computer_score)
             if match_won(player_score, computer_score):
                 break
             prompt(f"{winner} won!")
@@ -328,9 +333,9 @@ def play_tic_tac_toe():
 
     if match_won(player_score, computer_score):
         winner = "Player" if player_score == MATCH_WON else "Computer"
-        display_match_end(winner, match, player_score, computer_score, tie_score)
+        display_match_end(
+            winner, match, player_score, computer_score, tie_score)
         time.sleep(1.5)
         play_again()
 
 play_tic_tac_toe() # invoke game
-
