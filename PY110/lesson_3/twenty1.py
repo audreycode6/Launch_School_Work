@@ -30,7 +30,6 @@ def display_header(message):
     print(f"* {message} *    \n")
 
 
-
 def display_pause(message):
     '''display loading screen to make game more alive'''
     sleep_clear_terminal(.5)
@@ -291,6 +290,7 @@ def play_again():
     else:
         display_pause('See you later!')
 
+
 def play_21():
     '''main entry point to play 21'''
     player_lost = None
@@ -334,5 +334,5 @@ def play_21():
     play_again()
 
 # INVOKE START OF GAME
-display_intro() # only at start of 1st game display rules
+display_intro() # only at start of 1st game
 play_21() # start game
