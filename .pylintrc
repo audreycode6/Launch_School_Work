@@ -1,9 +1,16 @@
-; NOTE FOR AUDREY: .pylintrc exists in launch_school_work directory 
-; so for it to run properly you must:
-; run pylint from path starting in LAUNCH_SCHOOL_WORK directory: 
-; e.g: pylint PY110/lesson_3/twenty1.py 
+; NOTE FOR AUDREY !!!: 
+; ensure you active virtual environment if not currently 
+      ; should see -> on terminal (via 🐍 v3.12.0 (launch_school_work) )
+      ; to create venv: python3.12 -m venv ~/.venv/launch_school_work  
+      ; to activate venv: source ~/.venv/launch_school_work/bin/activate 
 
-# .pylintrc for PY101 Lessons 2 (13 Sep 2024)
+;.pylintrc exists in launch_school_work directory 
+      ; so for it to run properly you must:
+      ; run pylint from path starting in LAUNCH_SCHOOL_WORK directory: 
+      ; e.g: pylint PY110/lesson_3/twenty1.py 
+
+# .pylintrc for launch_school_work directory
+
 [MAIN]
 
 # Analyse import fallback blocks. This can be used to support both Python 2 and

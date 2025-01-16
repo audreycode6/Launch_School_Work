@@ -1,15 +1,12 @@
-'''OOP rock paper scissors game'''
 import random
 
 class Player:
-    '''parent class to Computer and Human'''
     CHOICES = ('rock', 'paper', 'scissors')
 
     def __init__(self):
         self.move = None
 
 class Computer(Player):
-    '''class for computer player actions'''
     def __init__(self):
         super().__init__()
 
@@ -17,7 +14,6 @@ class Computer(Player):
         self.move = random.choice(Player.CHOICES)
 
 class Human(Player):
-    '''class for human player actions'''
     def __init__(self):
         super().__init__()
 
@@ -34,7 +30,6 @@ class Human(Player):
         self.move = choice
 
 class RPSGame:
-    '''class to actions to play Rock Paper Scissors'''
     def __init__(self):
         self._human = Human()
         self._computer = Computer()
