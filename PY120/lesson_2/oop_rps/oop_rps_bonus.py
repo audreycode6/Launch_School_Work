@@ -105,7 +105,7 @@ class RPSGame:
             )
         print(rule_intro, move_eval)
 
-    def get_move_instance(self, player_move):
+    def _get_move_instance(self, player_move):
         """Return an instance of the appropriate Move subclass."""
         moves = {
             'rock' : Rock,
@@ -116,9 +116,9 @@ class RPSGame:
         }
         return moves[player_move](player_move)
 
-    def get_winner(self):
-        human_move = self.get_move_instance(self._human.move)
-        computer_move = self.get_move_instance(self._computer.move)
+    def _get_winner(self):
+        human_move = self._get_move_instance(self._human.move)
+        computer_move = self._get_move_instance(self._computer.move)
 
         if self._human.move == self._computer.move:
             return 'tie'
@@ -129,7 +129,7 @@ class RPSGame:
     def _update_and_display_winner(self):
         print(f"You chose: {self._human.move}")
         print(f"{self._computer.name} chose: {self._computer.move}\n")
-        winner = self.get_winner()
+        winner = self._get_winner()
 
         if winner == 'human':
             result = 'You win'
@@ -142,32 +142,36 @@ class RPSGame:
 
         print(f"{result} this round.")
 
-    def play(self):
-        self.display_welcome_message()
-        self.display_rules()
+    def _play_single_round(self):
         while True:
             self._human.choose()
             self._computer.choose(self.previous_move)
-            self.previous_move = self.human_previous_move()
+            self.previous_move = self._human_previous_move()
             self._update_and_display_winner()
             self._score.display_round()
             self._human.update_and_display_move_history()
             self._computer.update_and_display_move_history()
             if self._score.is_game_over():
                 break
-        if self.play_again():
-            self._score.reset()
-            self._computer.reset_name() # new computer player
-            self.play()
-        else:
-            self.display_goodbye_message()
-            self._human.reset_move_history()
-            self._computer.reset_move_history()
 
-    def human_previous_move(self):
+    def play(self):
+        while True:
+            self.display_welcome_message()
+            self.display_rules()
+            self._play_single_round()
+            if self._play_again():
+                self._score.reset()
+                self._computer.reset_name() # new computer player
+            else:
+                self.display_goodbye_message()
+                self._human.reset_move_history()
+                self._computer.reset_move_history()
+                break
+
+    def _human_previous_move(self):
         return self._human.move
 
-    def play_again(self):
+    def _play_again(self):
         valid_input = [['yes', 'yeah', 'y'], ['no', 'nope', 'n']]
         prompt = '\n==> Want to play again? (y/n): '
         while True:
@@ -182,37 +186,39 @@ class RPSGame:
 class Score:
     MAX_SCORE = 5
     def __init__(self, computer):
-        self.human = 0
-        self.computer = 0
+        self._human = 0
+        self._computer = 0
         self.computer_player = computer
 
     def reset(self):
-        self.human = 0
-        self.computer = 0
+        self._human = 0
+        self._computer = 0
 
     def increment_human(self):
-        self.human += 1
+        self._human += 1
 
     def increment_computer(self):
-        self.computer += 1
+        self._computer += 1
 
     def is_game_over(self):
-        return self.MAX_SCORE in (self.computer, self.human)
+        return self.MAX_SCORE in (self._computer, self._human)
 
     def display_round(self):
-        player_scores = (f"You: {self.human} | """
-                        f"""{self.computer_player.name}: {self.computer} """)
+        player_scores = (f"You: {self._human} | """
+                        f"""{self.computer_player.name}: {self._computer} """)
         if not self.is_game_over():
             print(f"CURRENT SCORE: {player_scores} \n")
         else:
             print("\n...game over...\n")
             print(f'FINAL SCORE:\n{player_scores}')
-            winner = ('You' if self.human == self.MAX_SCORE
+            winner = ('You' if self._human == self.MAX_SCORE
                             else f'{self.computer_player.name}')
             print(f'{winner} won!\n')
 
 
 class Move:
+    '''TODO would be better to just use a dict
+    to list move as key and list of moves it beats as keys'''
     def __init__(self, name):
         self.name = name
 
