@@ -43,7 +43,7 @@ class Board:
         print("-----+-----+-----")
         print("     |     |")
         print(f"  {self.squares[4]}  |"
-              f"  {self.squares[5]}  | {self.squares[6]}")
+              f"  {self.squares[5]}  |  {self.squares[6]}")
         print("     |     |")
         print("-----+-----+-----")
         print("     |     |")
@@ -92,6 +92,17 @@ class TTTGame:
         (3, 5, 7)
     )
 
+    @staticmethod
+    def _join_or(choices_list, seperator=', ', end='or'):
+        length = len(choices_list)
+        last_choice = choices_list[-1]
+        if length == 1:
+            return last_choice
+        if length == 2:
+            return f"{choices_list[0]} {end} {last_choice}"
+        all_but_last = seperator.join(choices_list[:length-1])
+        return f"{all_but_last}{seperator}{end} {last_choice}"
+
     def __init__(self):
         self.board = Board()
         self.human = Human()
@@ -136,10 +147,9 @@ class TTTGame:
         valid_choices = self.board.unused_squares()
         while True:
             choices_list = [str(choice) for choice in valid_choices]
-            choices_str = ", ".join(choices_list)
+            choices_str = TTTGame._join_or(choices_list)
             prompt = f"Choose a square ({choices_str}): "
             choice = input(prompt)
-
             try:
                 choice = int(choice)
                 if choice in valid_choices:
