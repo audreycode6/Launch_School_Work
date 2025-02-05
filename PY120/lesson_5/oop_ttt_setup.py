@@ -28,6 +28,9 @@ class Square:
 
 class Board:
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.squares = {key: Square() for key in range(1,10)}
 
     def count_markers_for(self, player, keys):
@@ -104,12 +107,24 @@ class TTTGame:
         return f"{all_but_last}{seperator}{end} {last_choice}"
 
     def __init__(self):
-        self.board = Board()
         self.human = Human()
         self.computer = Computer()
+        self.board = Board()
 
     def play(self):
         self.display_welcome_message()
+
+        while True:
+            self.play_single_game()
+            if not self.play_again():
+                break
+            clear_screen()
+            print("Good choice, welcome to the next round.")
+
+        self.display_goodbye_message()
+
+    def play_single_game(self):
+        self.board.reset()
         self.board.display()
 
         while True:
@@ -125,13 +140,21 @@ class TTTGame:
 
         self.board.display_with_clear()
         self.display_results()
-        self.display_goodbye_message()
+
+    def play_again(self):
+        while True:
+            playing_choice = input("\nWant to play again? (y/n): ").lower()
+            if playing_choice in ['y', 'n']:
+                break
+            print('Invalid Input! Expecting "y" for yes or "n" for no.')
+        return playing_choice == 'y'
 
     def display_welcome_message(self):
         clear_screen()
         print("Welcome to Tic Tac Toe!")
 
     def display_goodbye_message(self):
+        clear_screen()
         print("\nThanks for playing Tic Tac Toe! Goodbye!")
 
     def display_results(self):
