@@ -188,7 +188,9 @@ class TTTGame:
         self.board.mark_square_at(choice, self.human.marker)
 
     def computer_moves(self):
-        if self.defensive_computer_move():
+        if self.offensive_computer_move():
+            choice = self.offensive_computer_move()
+        elif self.defensive_computer_move():
             choice = self.defensive_computer_move()
         else: # no immediate threat
             valid_choices = self.board.unused_squares()
@@ -196,8 +198,8 @@ class TTTGame:
 
         self.board.mark_square_at(choice, self.computer.marker)
 
-    def at_risk_square(self, row):
-        if (self.board.count_markers_for(self.human, row) == 2):
+    def offense_defense_square(self, row, player):
+        if self.board.count_markers_for(player, row) == 2:
             for mark in row:
                 if mark in self.board.unused_squares():
                     return mark
@@ -205,7 +207,14 @@ class TTTGame:
 
     def defensive_computer_move(self):
         for row in TTTGame.POSSIBLE_WINNING_ROWS:
-            square_to_defend = self.at_risk_square(row)
+            square_to_defend = self.offense_defense_square(row, self.human)
+            if square_to_defend:
+                return square_to_defend
+        return None
+
+    def offensive_computer_move(self):
+        for row in TTTGame.POSSIBLE_WINNING_ROWS:
+            square_to_defend = self.offense_defense_square(row, self.computer)
             if square_to_defend:
                 return square_to_defend
         return None
