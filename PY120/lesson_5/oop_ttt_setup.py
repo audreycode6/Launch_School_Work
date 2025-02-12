@@ -77,6 +77,18 @@ class Board:
 class Player:
     def __init__(self, marker):
         self.marker = marker
+        self._score = 0
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self, score):
+        self._score = score
+
+    def increment_score(self):
+        self.score += 1
 
 class Human(Player):
     def __init__(self):
@@ -97,6 +109,7 @@ class TTTGame:
         (1, 5, 9), # diagonal rows
         (3, 5, 7)
     )
+    MATCH_GOAL = 3
 
     @staticmethod
     def _join_or(choices_list, seperator=', ', end='or'):
@@ -113,18 +126,26 @@ class TTTGame:
         self.human = Human()
         self.computer = Computer()
         self.board = Board()
+        self.round_count = 1
 
     def play(self):
+        '''main entry'''
         self.display_welcome_message()
-
-        while True:
-            self.play_single_game()
-            if not self.play_again():
-                break
-            clear_screen()
-            print("Good choice, welcome to the next round.")
-
+        self.play_match()
         self.display_goodbye_message()
+
+    def play_match(self):
+        while not self.is_match_over():
+            self.play_single_game()
+            self.display_score()
+            if not self.is_match_over():
+                if self.play_again():
+                    self.display_welcome_next_round()
+                else:
+                    break
+
+        if self.is_match_over():
+            self.display_match_results()
 
     def play_single_game(self):
         self.board.reset()
@@ -138,15 +159,16 @@ class TTTGame:
             self.computer_moves()
             if self.is_game_over():
                 break
-
             self.board.display_with_clear()
 
         self.board.display_with_clear()
-        self.display_results()
+        self.round_count += 1
+        self.increment_winners_score()
+        self.display_round_winner()
 
     def play_again(self):
         while True:
-            playing_choice = input("\nWant to play again? (y/n): ").lower()
+            playing_choice = input("\n==> Want to play again? (y/n): ").lower()
             if playing_choice in ['y', 'n']:
                 break
             print('Invalid Input! Expecting "y" for yes or "n" for no.')
@@ -154,13 +176,34 @@ class TTTGame:
 
     def display_welcome_message(self):
         clear_screen()
-        print("Welcome to Tic Tac Toe!")
+        print("* Welcome to Tic Tac Toe! *")
+        print(f"\nFirst player to earn {TTTGame.MATCH_GOAL}"
+              " points wins the match!")
+
+    def display_welcome_next_round(self):
+        clear_screen()
+        next_round_welcome = ["Good choice",
+                                "Nice", 
+                                "Onwards",
+                                "If you say so",
+                                "Good luck"
+                            ]
+        print(f"{random.choice(next_round_welcome)},"
+              f" welcome to round {self.round_count}.")
 
     def display_goodbye_message(self):
-        clear_screen()
         print("\nThanks for playing Tic Tac Toe! Goodbye!")
 
-    def display_results(self):
+    def display_score(self):
+        if not self.is_match_over():
+            print("\n* CURRENT SCORE *")
+        else:
+            print("\n... game over ...\n"
+              "\n* FINAL RESULTS *")
+        print(f"you: {self.human.score} | "
+              f"computer: {self.computer.score}")
+
+    def display_round_winner(self):
         if self.is_winner(self.human):
             print("You won! Congratulations!")
         elif self.is_winner(self.computer):
@@ -168,13 +211,26 @@ class TTTGame:
         else:
             print("A tie game. How boring.")
 
+    def display_match_results(self):
+        self.board.display_with_clear()
+        self.display_score()
+        winner = ('You' if self.human.score > self.computer.score
+                  else 'Computer')
+        print(f"{winner} won the match!")
+
+    def increment_winners_score(self):
+        if self.is_winner(self.human):
+            self.human.increment_score()
+        elif self.is_winner(self.computer):
+            self.computer.increment_score()
+
     def human_moves(self):
         choice = None
         valid_choices = self.board.unused_squares()
         while True:
             choices_list = [str(choice) for choice in valid_choices]
             choices_str = TTTGame._join_or(choices_list)
-            prompt = f"Choose a square ({choices_str}): "
+            prompt = f"==> Choose a square ({choices_str}): "
             choice = input(prompt)
             try:
                 choice = int(choice)
@@ -188,42 +244,51 @@ class TTTGame:
         self.board.mark_square_at(choice, self.human.marker)
 
     def computer_moves(self):
-        if self.offensive_computer_move():
-            choice = self.offensive_computer_move()
-        elif self.defensive_computer_move():
+        choice = self.offensive_computer_move()
+        if not choice:
             choice = self.defensive_computer_move()
-        else: # no immediate threat
-            valid_choices = self.board.unused_squares()
-            choice = random.choice(valid_choices)
+        if not choice:
+            choice = self.pick_center_square()
+        if not choice:
+            choice = self.pick_random_square()
 
         self.board.mark_square_at(choice, self.computer.marker)
 
-    def offense_defense_square(self, row, player):
+    def pick_center_square(self):
+        return 5 if self.board.is_unused_square(5) else None
+
+    def pick_random_square(self):
+        valid_choices = self.board.unused_squares()
+        return random.choice(valid_choices)
+
+    def critical_square(self, row, player):
         if self.board.count_markers_for(player, row) == 2:
             for mark in row:
                 if mark in self.board.unused_squares():
                     return mark
         return None
 
-    def defensive_computer_move(self):
+    def find_critical_square(self, player):
         for row in TTTGame.POSSIBLE_WINNING_ROWS:
-            square_to_defend = self.offense_defense_square(row, self.human)
+            square_to_defend = self.critical_square(row, player)
             if square_to_defend:
                 return square_to_defend
         return None
 
     def offensive_computer_move(self):
-        for row in TTTGame.POSSIBLE_WINNING_ROWS:
-            square_to_defend = self.offense_defense_square(row, self.computer)
-            if square_to_defend:
-                return square_to_defend
-        return None
+        return self.find_critical_square(self.computer)
+
+    def defensive_computer_move(self):
+        return self.find_critical_square(self.human)
 
     def is_winner(self, player):
         for row in TTTGame.POSSIBLE_WINNING_ROWS:
             if self.three_in_a_row(player, row):
                 return True
         return False
+
+    def is_match_over(self):
+        return TTTGame.MATCH_GOAL in [self.human.score, self.computer.score]
 
     def is_game_over(self):
         return self.board.is_full() or self.someone_won()
