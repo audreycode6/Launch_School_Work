@@ -126,7 +126,7 @@ class TTTGame:
         self.human = Human()
         self.computer = Computer()
         self.board = Board()
-        self.round_count = 1
+        self.starting_player = "human"
 
     def play(self):
         '''main entry'''
@@ -138,33 +138,57 @@ class TTTGame:
         while not self.is_match_over():
             self.play_single_game()
             self.display_score()
+            self.switch_starting_player()
             if not self.is_match_over():
-                if self.play_again():
-                    self.display_welcome_next_round()
-                else:
+                if not self.play_again():
                     break
+                clear_screen()
 
         if self.is_match_over():
             self.display_match_results()
 
     def play_single_game(self):
         self.board.reset()
-        self.board.display()
 
+        if self.starting_player == "human":
+            self.human_starts_play()
+        else:
+            self.computer_starts_play()
+
+        self.board.display_with_clear()
+        self.increment_winners_score()
+        self.display_round_winner()
+
+    def switch_starting_player(self):
+        self.starting_player = (
+            "computer" if self.starting_player == "human"
+            else "human")
+
+    def human_starts_play(self):
+        self.board.display()
         while True:
             self.human_moves()
             if self.is_game_over():
                 break
 
+            self.board.display_with_clear()
             self.computer_moves()
             if self.is_game_over():
                 break
             self.board.display_with_clear()
 
-        self.board.display_with_clear()
-        self.round_count += 1
-        self.increment_winners_score()
-        self.display_round_winner()
+    def computer_starts_play(self):
+        while True:
+            self.computer_moves()
+            if self.is_game_over():
+                break
+
+            self.board.display_with_clear()
+            self.human_moves()
+            if self.is_game_over():
+                break
+            self.board.display_with_clear()
+        self.board.display()
 
     def play_again(self):
         while True:
@@ -179,17 +203,6 @@ class TTTGame:
         print("* Welcome to Tic Tac Toe! *")
         print(f"\nFirst player to earn {TTTGame.MATCH_GOAL}"
               " points wins the match!")
-
-    def display_welcome_next_round(self):
-        clear_screen()
-        next_round_welcome = ["Good choice",
-                                "Nice", 
-                                "Onwards",
-                                "If you say so",
-                                "Good luck"
-                            ]
-        print(f"{random.choice(next_round_welcome)},"
-              f" welcome to round {self.round_count}.")
 
     def display_goodbye_message(self):
         print("\nThanks for playing Tic Tac Toe! Goodbye!")
