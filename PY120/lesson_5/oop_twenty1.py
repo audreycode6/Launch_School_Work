@@ -36,14 +36,16 @@ class Participant():
         clear_screen()
         print(f"{new_card[0]} was added!")
 
-    def display_hand(self, player="Your Hand"):
+    def display_hand(self):
         hand_size = len(self.hand)
+        player = "Your" if isinstance(self, Player) else "Dealer's"
         if hand_size == 2:
-            return f"{player}: {' and '.join(self.hand)}"
+            return f"{player} Hand: {' and '.join(self.hand)}"
 
         last_card = self.hand[-1]
         all_but_last_card = self.hand[:-1]
-        return f"{player}: {", ".join(all_but_last_card)}, and {last_card}"
+        return (f"{player} Hand:"
+                 f" {", ".join(all_but_last_card)}, and {last_card}")
 
     def stay(self):
         pass
@@ -99,7 +101,7 @@ class Player(Participant):
     def stay(self):
         clear_screen()
         print("* You chose to stay! *")
-        print("\n... Dealers turn ...\n")
+        print("\n... Dealer's turn ...\n")
 
     def update_money(self, player_won):
         if player_won:
@@ -124,12 +126,12 @@ class Dealer(Participant):
     def stay(self):
         print("* Dealer chose to stay *")
 
-    def display_hidden_hand(self, player="Dealer's Hand"):
+    def display_hidden_hand(self):
         one_card = self.hand[0]
-        return f"{player}: {one_card} and unknown card"
+        return f"Dealer's Hand: {one_card} and unknown card"
 
     def reveal_hand(self):
-        return super().display_hand("Dealer's Hand")
+        return super().display_hand()
 
 class TwentyOneGame:
     MAX_SCORE = 21
@@ -256,13 +258,14 @@ class TwentyOneGame:
         return winning_message
 
     def play_again(self):
+        continue_playing = ["y", "yes"]
         prompt = "==> Want to continue playing? (y/n): "
         while True:
-            playing_choice = input(prompt).lower()
-            if playing_choice in ['y', 'n']:
+            playing_choice = input(prompt).lower().strip()
+            if playing_choice in ["yes", "y", "no", "n"]:
                 break
-            print('Invalid Input! Expecting "y" for yes or "n" for no.')
-        return playing_choice == 'y'
+            print('Invalid Input! Expecting "y" / "yes" or "n" / "no".')
+        return playing_choice in continue_playing
 
     def display_welcome_message(self):
         clear_screen()
@@ -293,8 +296,8 @@ class TwentyOneGame:
         print(winning_message)
         self.player.display_money_available()
         print(f"\n{self.dealer.reveal_hand()} \n"
-                f"Dealers Score: {self.dealer.get_current_score()}\n")
-        print(f"{self.player.display_hand("Your Hand")} \n"
+                f"Dealer's Score: {self.dealer.get_current_score()}\n")
+        print(f"{self.player.display_hand()} \n"
                 f"Your Score: {self.player.get_current_score()}\n")
 
 game = TwentyOneGame()
