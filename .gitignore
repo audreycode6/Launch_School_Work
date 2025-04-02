@@ -48,4 +48,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-*.py*
+# *.py*
+*.py[cod]
+
