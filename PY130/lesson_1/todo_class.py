@@ -78,7 +78,7 @@ class TodoList:
     def mark_all_undone(self):
         def mark_undone(todo):
             todo.done = False
-            
+
         self.each(mark_undone)
 
     def all_done(self):
@@ -131,29 +131,3 @@ def setup():
     todo_list.add(todo3)
 
     return todo_list
-
-def step_8():
-    print('--------------------------------- Step 8')
-    todo_list = setup()
-
-    print(todo_list)
-    # ---- Today's Todos -----
-    # [ ] Buy milk
-    # [X] Clean room
-    # [ ] Go to gym
-
-    todo_list.mark_all_done()
-    print(todo_list)
-    # ---- Today's Todos -----
-    # [X] Buy milk
-    # [X] Clean room
-    # [X] Go to gym
-
-    todo_list.mark_all_undone()
-    print(todo_list)
-    # ---- Today's Todos -----
-    # [ ] Buy milk
-    # [ ] Clean room
-    # [ ] Go to gym
-
-step_8()
