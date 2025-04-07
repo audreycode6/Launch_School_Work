@@ -70,12 +70,16 @@ class TodoList:
         self._todos[index].done = False
 
     def mark_all_done(self):
-        for todo in self._todos:
+        def mark_done(todo):
             todo.done = True
 
+        self.each(mark_done)
+
     def mark_all_undone(self):
-        for todo in self._todos:
+        def mark_undone(todo):
             todo.done = False
+            
+        self.each(mark_undone)
 
     def all_done(self):
         return all(todo.done for todo in self._todos)
@@ -96,7 +100,21 @@ class TodoList:
 
         self.each(choose)
         return new_list
+    
+    def find_by_title(self, todo_title):
+        found = self.select(lambda todo: todo.title == todo_title)
+        return found.todo_at(0)
+    
+    def done_todos(self):
+        return self.select(lambda todo: todo.done)
 
+    def undone_todos(self):
+        return self.select(lambda todo: not todo.done)
+    
+    def mark_done(self, title):
+        found = self.find_by_title(title)
+        found.done = True
+        
 
 empty_todo_list = TodoList('Nothing Doing')
 
@@ -114,20 +132,28 @@ def setup():
 
     return todo_list
 
-def step_12():
-    print('--------------------------------- Step 12')
+def step_8():
+    print('--------------------------------- Step 8')
     todo_list = setup()
 
-    def y_in_title(todo):
-        return 'y' in todo.title
-
-    print(todo_list.select(y_in_title))
+    print(todo_list)
     # ---- Today's Todos -----
     # [ ] Buy milk
+    # [X] Clean room
     # [ ] Go to gym
 
-    print(todo_list.select(lambda todo: todo.done))
+    todo_list.mark_all_done()
+    print(todo_list)
     # ---- Today's Todos -----
+    # [X] Buy milk
     # [X] Clean room
+    # [X] Go to gym
 
-step_12()
+    todo_list.mark_all_undone()
+    print(todo_list)
+    # ---- Today's Todos -----
+    # [ ] Buy milk
+    # [ ] Clean room
+    # [ ] Go to gym
+
+step_8()
