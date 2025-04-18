@@ -12,6 +12,9 @@ class TestTodoList(unittest.TestCase):
         self.todos.add(self.todo2)
         self.todos.add(self.todo3)
 
+    def test_length(self):
+        self.assertEqual(3, len(self.todos))
+
     def test_to_list(self):
         self.assertEqual([self.todo1, self.todo2, self.todo3], self.todos.to_list())
         '''def to_list(self):
