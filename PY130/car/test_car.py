@@ -10,6 +10,7 @@ class CarTest(unittest.TestCase):
         car2.name = "Kim"
 
         self.assertEqual(car1, car2)
+        self.assertIs(car1, car2)
 
 if __name__ == "__main__":
     unittest.main()
