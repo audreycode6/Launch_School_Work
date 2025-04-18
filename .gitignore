@@ -50,3 +50,4 @@ coverage.xml
 *.cover
 *.py[cod]
 
+PY130/car/carvenv/
