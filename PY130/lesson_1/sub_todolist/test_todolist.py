@@ -1,5 +1,5 @@
 import unittest
-from todolist import Todo, TodoList
+from lesson_1.sub_todolist.todolist import Todo, TodoList
 
 class TestTodoList(unittest.TestCase):
     def setUp(self):
