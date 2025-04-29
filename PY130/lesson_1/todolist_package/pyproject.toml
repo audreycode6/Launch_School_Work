@@ -21,5 +21,5 @@ dependencies = [] # TODO
 
 
 [project.urls]
-Homepage = "https://github.com/audreycode6/todolist"
-Issues = "httpd://github.com/audreycode6/todolist/issues"
+Homepage = "https://github.com/audreycode6/Launch_School_Work/tree/main/PY130/lesson_1"
+Issues = "https://github.com/audreycode6/launch_school_work/issues"
