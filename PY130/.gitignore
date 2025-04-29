@@ -1,6 +1,7 @@
 # .gitignore file
 
 # Ignore virtual environment folders
+pip_practice
 venv/
 .venv/
 
@@ -13,3 +14,5 @@ __pycache__/
 
 # Editor-specific files
 *.swp
+
+
