@@ -1,2 +1,4 @@
 ### TODOLIST
-- create todo lists and add and mark tasks as complete/incomplete
+- create todo lists
+- add, remove, and mark tasks as complete/incomplete within your todolist
+- access/modify/display tasks based on attributes (title, position in list, etc.)
