@@ -69,36 +69,44 @@ D:
 - use dict to store key the num and value roman_num'''
 
 class RomanNumeral:
+
     INT_TO_ROMAN = {
-        1000 : "M", 900 : "CM", 500 : "D", 400 : "CD",
-        100 : "C", 90 : "XC", 50 : "L", 40 : "XL", 10 : "X",
-        9 : "IX", 5: "V", 4: "IV", 1 : "I"
-    }
-    
+        "M" : 1000, 
+        "CM" : 900,
+        "D" : 500,
+        "CD" : 400,
+        "C" : 100,
+        "XC" : 90,
+        "L" : 50,
+        "XL" : 40,
+        "X" : 10,
+        "IX" : 9,
+        "V" : 5,
+        "IV" : 4,
+        "I" : 1,
+    }    
     def __init__(self, number):
-        self.number = number
+        self._number = number
+
+    @property
+    def number(self):
+    # discourage reassignment of number value by only defining a getter
+        return self._number
 
     def to_roman(self):
-        # if number is sole roman numeral
-        if self.number in RomanNumeral.INT_TO_ROMAN.keys():
-            return RomanNumeral.INT_TO_ROMAN[self.number]
-        
-        # else build remaining roman numerals:
-        closest = self.find_closest_but_not_over(self.number)
-        self.remainder = self.number - closest
-        self.roman_num = RomanNumeral.INT_TO_ROMAN[closest]
-        return self.build_remaining_nums(closest)
-    
-    def build_remaining_nums(self, closest):
-        while self.remainder > 0:
-            next_roman_num = self.find_closest_but_not_over(self.remainder)
-            self.roman_num = str(self.roman_num 
-                                 + RomanNumeral.INT_TO_ROMAN[next_roman_num])
-            self.remainder -= next_roman_num
-        return self.roman_num 
+        roman_version = ''
+        remaining_value = self.number 
 
-    def find_closest_but_not_over(self, current_num):
-        for num in RomanNumeral.INT_TO_ROMAN.keys():
-            if num <= current_num:
-                return num
+        while remaining_value > 0:
+            for roman_numeral, integer in RomanNumeral.INT_TO_ROMAN.items():
+                if remaining_value >= integer:
+                    # reassign remaining_value: deduct value we will be adding to string
+                    remaining_value -= integer 
+                    # reassign roman_version: add the next roman_numeral
+                    roman_version += roman_numeral
+                    # break out of the if condition once above reassignments done
+                    #  so that we always search from highest roman numeral int
+                    break
+
+        return roman_version
 
