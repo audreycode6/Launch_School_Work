@@ -70,22 +70,20 @@ D:
 
 class RomanNumeral:
     INT_TO_ROMAN = {
-        1: "I", 4 : 'IV', 5 : 'V', 9 : 'IX' 
-        , 10 : 'X', 40 : 'XL', 50 : 'L', 
-        90: "XC", 100 : 'C', 400 : 'CD', 
-        500 : 'D', 900: 'CM', 1000 : 'M'
-                    }
+        1000 : "M", 900 : "CM", 500 : "D", 400 : "CD",
+        100 : "C", 90 : "XC", 50 : "L", 40 : "XL", 10 : "X",
+        9 : "IX", 5: "V", 4: "IV", 1 : "I"
+    }
     
     def __init__(self, number):
         self.number = number
-        self.remainder = 0
-        self.roman_num = ""
 
     def to_roman(self):
         # if number is sole roman numeral
         if self.number in RomanNumeral.INT_TO_ROMAN.keys():
             return RomanNumeral.INT_TO_ROMAN[self.number]
         
+        # else build remaining roman numerals:
         closest = self.find_closest_but_not_over(self.number)
         self.remainder = self.number - closest
         self.roman_num = RomanNumeral.INT_TO_ROMAN[closest]
@@ -101,12 +99,6 @@ class RomanNumeral:
 
     def find_closest_but_not_over(self, current_num):
         for num in RomanNumeral.INT_TO_ROMAN.keys():
-            if num == current_num:
+            if num <= current_num:
                 return num
-            elif num < current_num:
-                low_close = num
-            else: # num > current_num
-                return low_close
-        return 1000  # highest possible num in dict
-        
 
