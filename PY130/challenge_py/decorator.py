@@ -1,42 +1,27 @@
-from functools import wraps
-
-# First, create the authenticate decorator
-def authenticate(func):
-    @wraps(func)
-    def wrapper(user_id, *args, **kwargs):
-        # Simulate authentication check
-        print("AUTHENTICATING")
-        authenticated_users = [101, 102, 103]
-        if user_id not in authenticated_users:
-            return "Authentication failed: Access denied"
-        return func(user_id, *args, **kwargs)
-    return wrapper
-
-# Next, create the log_calls decorator
-def log_calls(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        print(f"CALLING: {func.__name__} with args: {args}, kwargs: {kwargs}")
-        result = func(*args, **kwargs)
-        print(f"RESULT: {result}")
-        return result
-    return wrapper
-
-# Now apply both decorators to a function
-
-@log_calls
-@authenticate
-def get_user_data(user_id, data_type="basic"):
-    # Simulate retrieving user data
-    if data_type == "basic":
-        return f"Basic data for user {user_id}"
-    else:
-        return f"Advanced data for user {user_id}"
-
-# Test the function with various inputs
+'''refactor the following program to use separate modules for each of 
+the add_point and calculate_reflected_slope functions. 
+You should also have a main program file that runs that 
+last 4 lines of code shown below.
+'''
 
 
-# print(get_user_data(101))
-print(get_user_data(101, "Advanced"))
-# print(get_user_data(420))
-# print(get_user_data(420, "Advance"))
+coordinates = []
+
+def reflect_point(coordinates):
+    x, y = coordinates
+    return (x, -y)
+
+def add_point(x, y):
+    coordinates.append((x, y))
+
+def get_coordinates():
+    return coordinates[:]
+
+def calculate_reflected_slope():
+    (x2, y2), (x1, y1) = [reflect_point(point) for point in get_coordinates()]
+    return (y2 - y1) / (x2 - x1)
+
+add_point(4, 3)
+add_point(1, -9)
+slope = calculate_reflected_slope()
+print(slope)  # Outputs: -4.0
