@@ -51,3 +51,4 @@ coverage.xml
 *.py[cod]
 
 PY130/car/carvenv/
+.DS_Store
