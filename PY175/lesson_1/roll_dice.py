@@ -54,7 +54,7 @@ while True:
         client_socket.close()
         continue
     
-    # Handle error if side or rolls value are not numeric: # TODO fix
+    # Handle error if side or rolls value are not numeric:
     bad_request = False
     invalid_value_for_param_message = ("ERROR: Expecting numeric values"
             " for the 'rolls' and 'sides' parameters.")
