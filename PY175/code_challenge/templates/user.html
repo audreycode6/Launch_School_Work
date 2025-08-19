@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h2>* {{user_name.title()}} *</h2>
+    <h3>Email:</h3>
+    <p>{{email}}</p>
+{% if formatted_interests %}
+    <h3>Interests:</h3>
+    <p>{{formatted_interests}}</p>
+{% endif %}
+
+<br>
+{% for user_name in other_users %}
+    <li>
+        <a href="{{ url_for('user', user_name=user_name) }}">
+            {{user_name.title()}}
+        </a>
+    </li>
+{% endfor %}
+
+{% endblock%}
