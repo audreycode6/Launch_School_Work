@@ -42,11 +42,11 @@ while True:
 
     # Handle error if side or rolls not in query strings:
     missing_param_message = (
-            "ERROR: Expecting a query parameters for 'rolls' and 'sides' in order to continue.\n"
-            "Please try a different url with the proper query strings.")  
+            "<html><head><title>Missing Parameter(s)</title></head><body><h1>ERROR 400</h1> <p><em>Expecting a query parameters for 'rolls' and 'sides' in order to continue.\n"
+            "Please try a different url with the proper query strings!</em></p></body></html>")  
     if not REQUIRED_PARAM_KEYS.issubset(params_dict.keys()):
         response = ("HTTP/1.1 400 Not Found\r\n"
-                    "Content-Type: text/plan\r\n"
+                    "Content-Type: text/html\r\n"
                     f"Content-Length: {len(missing_param_message)}\r\n"
                      "\r\n"
                      f"{missing_param_message}")
@@ -56,13 +56,15 @@ while True:
     
     # Handle error if side or rolls value are not numeric:
     bad_request = False
-    invalid_value_for_param_message = ("ERROR: Expecting numeric values"
-            " for the 'rolls' and 'sides' parameters.")
+    invalid_value_for_param_message = ("<html><head><title>Invalid Parameter Value(s)</title>"
+            "<body><h1>ERROR 400</h1>"
+            " <p><em>Expecting numeric values"
+            " for the 'rolls' and 'sides' parameters.</em></p></body></html>")
     for key in REQUIRED_PARAM_KEYS:
         value = params_dict[key]
         if not value.isnumeric():
             response = ("HTTP/1.1 400 Not Found\r\n"
-                        "Content-Type: text/plain\r\n"
+                        "Content-Type: text/html\r\n"
                         f"Content-Length: {len(invalid_value_for_param_message)}\r\n"
                         "\r\n"
                         f"{invalid_value_for_param_message}")
@@ -76,22 +78,25 @@ while True:
     # roll die (value of rolls in params_dict) -> for num in range(int(params_dict.get('rolls')
         # with (value of sides in params_dict) possibilities -> str(random.randint(1, int(params_dict.get('sides'))))
         # and keep track of each roll in list -> roll_history
-    roll_history = [f'Roll {num + 1}: {str(random.randint(1, int(params_dict.get('sides'))))}' 
+    roll_history = [f'<li><strong>Roll {num + 1}:</strong> {str(random.randint(1, int(params_dict.get('sides'))))}</li>' 
                     for num in range(int(params_dict.get('rolls')))]
     display_rolls = "\r\n".join(roll_history)
     
-    
-    response_body = (f"HTTP Method: {http_method}\r\n"
-                     f"Path: {path}\r\n"
-                     f"Parameters: {params_dict}'\r\n"
-                     f"{display_rolls}")
-    
+    response_body = ("<html><head><title>Roll Dice</title></head><body>"
+                     "<h1>HTTP Request Information:</h1>"
+                    f"<p><strong>HTTP Method:</strong> {http_method}</p>\r\n"
+                    f"<p><strong>Path:</strong> {path}</p>\r\n"
+                    f"<p><strong>Parameters:</strong> {params_dict}</p>\r\n"
+                    "<h2>Roll Results:</h2>"
+                    "<ul>"
+                    f"{display_rolls}</ul></body></html>")
 
+    
     response = ("HTTP/1.1 200 OK\r\n"
-                "Content-Type: text/plain\r\n"
-                f"Content-Length: {len(response_body)}\r\n" # NEW
+                "Content-Type: text/html\r\n"
+                f"Content-Length: {len(response_body)}\r\n"
                 "\r\n"
-                f"{response_body}\n") # NEW
+                f"{response_body}\n")
     
     client_socket.sendall(response.encode())
     client_socket.close()
