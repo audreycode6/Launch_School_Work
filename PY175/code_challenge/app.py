@@ -1,8 +1,7 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect
 import yaml
 
 app = Flask(__name__)
-
 
 with open("users.yaml", "r") as file:
     users = yaml.safe_load(file)
