@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
-# Distribution / packaging
+# Distribution / Packaging
 .Python
 build/
 develop-eggs/
@@ -23,12 +23,13 @@ var/
 .installed.cfg
 *.egg
 
-# Virtual environments (adjust if your venv folder has a different name)
+# Virtual Environments
 venv/
 ENV/
 env/
 .virtualenv/
 todolist/
+carvenv/
 
 # PyInstaller
 *.manifest
@@ -38,7 +39,7 @@ todolist/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit Test / Coverage
 htmlcov/
 .tox/
 .nox/
@@ -50,5 +51,8 @@ coverage.xml
 *.cover
 *.py[cod]
 
-PY130/car/carvenv/
+# OS / System
 .DS_Store
+
+# Editors / IDEs 
+.vscode/
