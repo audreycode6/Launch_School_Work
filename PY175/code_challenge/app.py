@@ -3,15 +3,15 @@ import yaml
 
 app = Flask(__name__)
 
-def load_users():
-    with open("users.yaml", "r") as file:
-        users = yaml.safe_load(file)
-        '''users is dict: users name as key: and dict value of their info
-            user_dict_info {'email': "email_value",
-                            'interests': [list_of interests]}'''
-    return users
 
-def total_interests(users):
+with open("users.yaml", "r") as file:
+    users = yaml.safe_load(file)
+    '''users is dict: users name as key: and dict value of their info
+        user_dict_info {'email': "email_value",
+                        'interests': [list_of interests]}'''
+
+
+def list_all_interests(users):
     list_interests = [interest for name in users.keys()
                       for interest in users[name]["interests"]]
 
@@ -25,8 +25,7 @@ def list_other_users(users, u_name):
 
 @app.route('/')
 def index():
-    users = load_users()
-    list_interests = total_interests(users)
+    list_interests = list_all_interests(users)
 
     return render_template("index.html",
                            users=users,
@@ -35,8 +34,10 @@ def index():
 
 @app.route("/user/<user_name>")
 def user(user_name):
-    users = load_users()
-    list_interests = total_interests(users)
+    list_interests = list_all_interests(users)
+
+    if user_name not in users.keys(): #error handling
+        return render_template("error.html", users=users, list_interests=list_interests, user_name=user_name)
 
     email = users[user_name]['email']
     formatted_interests = (", ").join(users[user_name]['interests'])
@@ -50,6 +51,10 @@ def user(user_name):
                            other_users=other_users
                            )
 
+
+@app.errorhandler(404)
+def page_not_found(_error):
+    return redirect("/")
 
 if __name__ == '__main__':
     app.run(debug=True, port=5003)

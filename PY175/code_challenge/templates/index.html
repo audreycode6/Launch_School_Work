@@ -2,12 +2,12 @@
 
 {% block content %}
 {% for user_name, info in users.items() %}
-<h3>
+<ul>
     <li>
-        <a href="{{ url_for('user', user_name=user_name) }}">
-            {{user_name.title()}}
-        </a>
-    </li>
-</h3>
+    <a href="{{ url_for('user', user_name=user_name) }}">
+        {{user_name.title()}}
+    </a>
+</li>
+</ul>
 {% endfor %}
 {% endblock %}

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block content%}
+<!-- <h2>ERROR</h2> -->
+<h3><em>404 ERROR: User, <strong>"{{user_name}}"</strong>, doesn't exist.
+     Please try a different user in URL.</em>
+</h3>
+<br>
+<a href="{{ url_for('index') }}">
+    Home
+</a>
+
+{% endblock %}
