@@ -25,6 +25,9 @@ from werkzeug.exceptions import NotFound
 app = Flask(__name__)
 app.secret_key = "secret1"
 
+DELETED_MESSAGE = "has been deleted."
+CREATED_MESSAGE = "has been created."
+
 def require_list(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -87,7 +90,7 @@ def create_list():
         'title': title,
         'todos': []})
         
-    flash("The list has been created.", "success")
+    flash(f"The list {CREATED_MESSAGE}", "success")
     session.modified = True #  ensure Flask is aware of the change                                                                                                                                                            
     return redirect(url_for('get_lists'))
 
@@ -119,7 +122,7 @@ def add_todo(lst, list_id):
         'title': todo_title,
         'completed': False}) 
     
-    flash('Successfuly added a new todo.', 'success')
+    flash(f'New todo {CREATED_MESSAGE}', 'success')
     session.modified = True
     return redirect(url_for("show_list", list_id=list_id))
 
@@ -141,7 +144,7 @@ def update_completion_status(lst, todo, list_id, todo_id):
 def delete_todo(lst, todo, list_id, todo_id):
     lst['todos'].remove(todo) # delete todo
     session.modified = True
-    flash('Todo has been successfully deleted.', 'success')
+    flash(f'Todo {DELETED_MESSAGE}', 'success')
     return redirect(url_for('show_list', list_id=list_id))
 
 
@@ -165,7 +168,7 @@ def edit_list(lst, list_id):
 def delete_list(lst, list_id):
     session['lists'].remove(lst)
     session.modified = True
-    flash(f"List has been deleted.", "success")
+    flash(f"List {DELETED_MESSAGE}", "success")
     return redirect(url_for("get_lists"))
     
 
