@@ -112,7 +112,7 @@ def add_todo(lst, list_id):
     error = error_for_title_length(todo_title)
     if error:
         flash(error, 'error')
-        return render_template('list.html', lst=find_list_by_id(list_id, session['lists']))
+        return render_template('list.html', lst=lst)
 
     lst['todos'].append({
         'id': str(uuid4()),
