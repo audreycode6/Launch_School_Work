@@ -39,7 +39,7 @@
 
     </section>
 
-    <form action='/lists/{{ lst.id }}/todos' method='post'>
+    <form action='{{ url_for("add_todo", list_id=lst.id) }}' method='post'>
         <dl>
             <dt>
                 <label for='todo'>Enter a new todo item:</label>
