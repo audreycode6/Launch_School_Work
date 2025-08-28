@@ -26,7 +26,7 @@ app = Flask(__name__)
 app.secret_key = "secret1"
 
 DELETED_MESSAGE = "has been deleted."
-CREATED_MESSAGE = "has been created."
+CREATED_MESSAGE = "has been created!"
 
 def require_list(f):
     @wraps(f)
@@ -90,7 +90,7 @@ def create_list():
         'title': title,
         'todos': []})
         
-    flash(f"The list {CREATED_MESSAGE}", "success")
+    flash(f"New todo list {CREATED_MESSAGE}", "success")
     session.modified = True #  ensure Flask is aware of the change                                                                                                                                                            
     return redirect(url_for('get_lists'))
 
