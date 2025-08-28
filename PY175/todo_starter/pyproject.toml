@@ -2,7 +2,7 @@
 name = "todos"
 version = "2.1.2"
 description = ""
-authors = ["Audrey Theriault-Allaire<audrey2699@gmail.com>"]
+authors = ["Audrey Theriault-Allaire <audrey2699@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
