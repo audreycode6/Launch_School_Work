@@ -1,5 +1,6 @@
 from uuid import uuid4
 from functools import wraps
+import os
 from flask import ( 
     flash,
     Flask,
@@ -188,4 +189,7 @@ def update_list_title(lst, list_id):
     return redirect(url_for("show_list", list_id=list_id))
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5003)
+    if os.environ.get('FLASK_ENV') == ' production':
+        app.run(debug=False)
+    else: # development env
+        app.run(debug=True, port=5003)
