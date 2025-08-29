@@ -1,0 +1,17 @@
+1989 - Guido van Rossum starts developing Python.
+1991 - Python 0.9.0 (initial release) is released.
+1994 - Python 1.0 is released.
+2000 - Python 2.0 is released.
+2008 - Python 3.0 is released.
+2010 - Python 2.7 is released.
+2011 - Python 3.2 is released.
+2012 - Python 3.3 is released.
+2014 - Python 3.4 is released.
+2015 - Python 3.5 is released.
+2016 - Python 3.6 is released.
+2018 - Python 3.7 is released.
+2019 - Python 3.8 is released.
+2020 - Python 3.9 is released.
+2021 - Python 3.10 is released.
+2022 - Python 3.11 is released.
+2023 - Python 3.12 is released.
