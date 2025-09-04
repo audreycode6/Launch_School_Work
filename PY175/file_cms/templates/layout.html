@@ -3,12 +3,17 @@
     <head>
         <title>File CMS</title>
         <meta charset='UTF-8/'>
+        <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/application.css') }}"/>
     </head>
     <body>
-        <header>
-            <h1>File CMS</h1>
-        </header>
         <main>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                        <p class='message'>{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             {% block content %}
             <!-- Filled in by the 'content' block from another template file -->
             {% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h1>File CMS</h1>
+<ul>
+    {% for file_name in files%}
+    <li>
+        <a href='{{ url_for("display_file_contents", file_name=file_name )}}'>{{file_name}}</a> 
+        <a href='{{ url_for("edit_file", file_name=file_name)}}'>Edit</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

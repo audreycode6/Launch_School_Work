@@ -1,0 +1,9 @@
+body {
+    font-family: sans-serif;
+    padding: 1em;
+}
+
+.message {
+    background-color: rgb(255, 255, 128);
+    padding: 10px;
+}
