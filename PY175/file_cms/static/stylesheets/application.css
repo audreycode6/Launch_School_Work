@@ -7,3 +7,21 @@ body {
     background-color: rgb(255, 255, 128);
     padding: 10px;
 }
+
+.file_index {
+    padding: 2px;
+}
+
+.delete_button:hover {
+    background-color: rgb(237, 122, 122);
+}
+
+.submit_button:hover {
+    background-color: rgb(142, 237, 142);
+}
+
+#signed_in_text{
+    font-style: italic;
+    font-size: 0.9em;
+    color: gray;
+}

@@ -4,6 +4,6 @@
 <h2>Edit content of {{file_name}}:</h2>
 <form method='post' action='{{ url_for("submit_edit", file_name=file_name) }}'> 
     <textarea name='content' rows='20' cols='70'>{{file_content}}</textarea>
-    <input type='submit' value='Save Changes'>
+    <input type='submit' value='Save Changes' class='submit_button'>
 </form>
 {% endblock %}

@@ -16,20 +16,18 @@ class FileCMSTest(unittest.TestCase):
     def tearDown(self):
         # deletes the entire directory & contents specified by self.data_path
         shutil.rmtree(self.data_path, ignore_errors=True) 
+
+    def admin_session(self):
+        # simulate user signed in
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess['username'] = "admin"
+
+            return c
         
     def create_document(self, name, content=''):
         with open(os.path.join(self.data_path, name), 'w') as file:
             file.write(content)
-
-    def test_index(self):
-        self.create_document('about.md')
-        self.create_document('changes.txt')
-
-        with self.client.get("/") as response:
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.content_type, "text/html; charset=utf-8")
-            self.assertIn('about.md', response.get_data(as_text=True))
-            self.assertIn('changes.txt', response.get_data(as_text=True))
 
     def test_get_file_contents(self):
         self.create_document('changes.txt', "There are many changes.")
@@ -63,6 +61,7 @@ class FileCMSTest(unittest.TestCase):
             self.assertIn("<h1>Welcome</h1>", response.get_data(as_text=True))
 
     def test_edit_file(self):
+        self.admin_session()
         self.create_document('changes.txt', "There are many changes.")
 
         # assert that edit link works and containts content from 
@@ -72,6 +71,7 @@ class FileCMSTest(unittest.TestCase):
             self.assertIn("There are many changes.", response.get_data(as_text=True)) 
         
     def test_submit_edit(self):
+        self.admin_session()
         self.create_document('changes.txt')
         # assert post request results in redirect to "/" 
         with self.client.post(
@@ -90,6 +90,120 @@ class FileCMSTest(unittest.TestCase):
         with self.client.get("/") as response:
             self.assertNotIn("changes.txt has been updated.", response.get_data(as_text=True))
 
+    def test_new(self):
+        self.admin_session()
+        with self.client.get('/new') as response:
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("Add a new document:", response.get_data(as_text=True))
+
+    def test_new_file_submission(self):
+        self.admin_session()
+        with self.client.post("/new", data={'file_name': "test.txt"}) as response:
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.location, "/")
+        
+        with self.client.get('/') as response:
+            self.assertIn("test.txt was created", response.get_data(as_text=True))
+            self.assertEqual(response.status_code, 200)
+
+    def test_no_name_file_submission(self):
+        self.admin_session()
+        with self.client.post('/new', data={'file_name': ''}) as response:
+            self.assertEqual(response.status_code, 422)
+            self.assertIn("A name is required", response.get_data(as_text=True))
+
+    def test_file_name_exists_submission(self):
+        self.admin_session()
+        self.create_document("foo")
+
+        with self.client.post('/new', data={'file_name': 'foo'}) as response:
+            self.assertEqual(response.status_code, 422)
+            self.assertIn("foo already exists", response.get_data(as_text=True))
+
+    def test_delete_file(self):
+        self.admin_session()
+        self.create_document("file_to_delete.ext")
+
+        with self.client.post("/file_to_delete.ext/delete", follow_redirects=True) as response:
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("file_to_delete.ext has been deleted", response.get_data(as_text=True))
+
+        with self.client.get("/") as response: # make sure file is deleted from index
+            self.assertNotIn("file_to_delete.ext", response.get_data(as_text=True))
+
+    def test_delete_non_existent_file(self):
+        self.admin_session()
+        with self.client.post("/nada.ext/delete") as response:
+            self.assertEqual(response.status_code, 422)
+            self.assertIn("nada.ext does not exist", response.get_data(as_text=True))
+
+    def test_index_signed_out(self):
+        self.create_document("file.ext")
+
+        with self.client.get("/") as response:
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.content_type, "text/html; charset=utf-8")
+            self.assertIn('Sign In', response.get_data(as_text=True))
+
+    def test_signin_form(self):
+        with self.client.get("/users/signin") as response:
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("Username", response.get_data(as_text=True))
+            self.assertIn("Sign In", response.get_data(as_text=True))
+
+    def test_success_sign_in_and_out(self):
+        with self.client.post(
+            "/users/signin", 
+            data={"username":"admin", "password":"secret"}, follow_redirects=True
+            ) as response:
+            self.assertIn("Signed in as admin", response.get_data(as_text=True))
+            self.assertIn("Sign Out", response.get_data(as_text=True))
+            self.assertIn("Welcome", response.get_data(as_text=True))
+
+        with self.client.post("/users/signout", follow_redirects=True) as response:
+            self.assertNotIn("Signed in as admin", response.get_data(as_text=True))
+            self.assertIn("You have been signed out", response.get_data(as_text=True))
+            self.assertIn("Sign In", response.get_data(as_text=True))
+
+    def test_signin_unsuccessful(self):
+        with self.client.post(
+            "/users/signin", 
+            data={"username":"foo", "password":"bar"}, follow_redirects=True
+            ) as response:
+            self.assertEqual(response.status_code, 422)
+            self.assertIn("Invalid credentials, please try again", response.get_data(as_text=True))
+            self.assertIn("Sign In", response.get_data(as_text=True))
+            self.assertIn("foo", response.get_data(as_text=True))
+
+    def test_signed_out_view(self):
+        signed_out_message = "You must be signed in to do that"
+
+        # try to access the edit view
+        with self.client.get("/changes.txt/edit", follow_redirects=True) as response:
+            self.assertIn(signed_out_message, response.get_data(as_text=True))
+
+        # try to access the new document view 
+        with self.client.get('/new', follow_redirects=True) as response:
+            self.assertIn(signed_out_message, response.get_data(as_text=True))
+ 
+        self.create_document("foo")
+        # try to edit a doc 
+        with self.client.post("/foo", data={"content": "There are many changes."}, follow_redirects=True) as response:
+            self.assertIn(signed_out_message, response.get_data(as_text=True))
+
+        # try to delete a doc
+        with self.client.post("/foo/delete", follow_redirects=True) as response:
+            self.assertIn(signed_out_message, response.get_data(as_text=True))
+
+        # try to create new doc
+        with self.client.post("/new", data={'file_name': "test.txt"}, follow_redirects=True) as response:
+            self.assertIn(signed_out_message, response.get_data(as_text=True))
+
+        
+        
+
+    
+        
 
 if __name__ == "__main__":
     unittest.main()
