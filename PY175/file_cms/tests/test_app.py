@@ -15,14 +15,13 @@ class FileCMSTest(unittest.TestCase):
 
     def tearDown(self):
         # deletes the entire directory & contents specified by self.data_path
-        shutil.rmtree(self.data_path, ignore_errors=True) 
+        shutil.rmtree(self.data_path, ignore_errors=True)
 
-    def admin_session(self):
+    def admin_session(self): # TODO figure out what needs to change when using user.yaml
         # simulate user signed in
         with self.client as c:
             with c.session_transaction() as sess:
                 sess['username'] = "admin"
-
             return c
         
     def create_document(self, name, content=''):
@@ -199,11 +198,37 @@ class FileCMSTest(unittest.TestCase):
         with self.client.post("/new", data={'file_name': "test.txt"}, follow_redirects=True) as response:
             self.assertIn(signed_out_message, response.get_data(as_text=True))
 
-        
-        
+    def test_credential_in_yaml(self):
+        # credentials in test.users.yaml
+        with self.client.post(
+            "/users/signin", 
+            data={"username":"test_user", "password":"test_secret"}, 
+            follow_redirects=True) as response:
+                self.assertIn("Signed in as test", response.get_data(as_text=True))
+                self.assertIn("Sign Out", response.get_data(as_text=True))
+                self.assertIn("Welcome", response.get_data(as_text=True))
+                self.assertEqual(200, response.status_code)
 
-    
-        
+        # credentials not in test.users.yaml
+        with self.client.post(
+            "/users/signin", 
+            data={"username":"audrey", "password":"secret"}, 
+            follow_redirects=True) as response:
+                self.assertNotIn("Signed in as audrey", response.get_data(as_text=True))
+                self.assertIn("Invalid credentials", response.get_data(as_text=True))
+                self.assertEqual(422, response.status_code)
+
+    def test_hash_pw(self):
+        # using hashed pw does not give access
+        with self.client.post(
+            "/users/signin",
+            data={"username":"test_user", 
+                  "password":"$2b$12$D2SLHxDKrTJJMwSGa9de5.FIK6TkyDYnqKzTB.OB8jV3MvnKgDlzq"},
+            follow_redirects=True) as response:
+                self.assertNotIn("Signed in as test_user", response.get_data(as_text=True))
+                self.assertIn("Invalid credentials", response.get_data(as_text=True))
+                self.assertEqual(422, response.status_code)
+
 
 if __name__ == "__main__":
     unittest.main()

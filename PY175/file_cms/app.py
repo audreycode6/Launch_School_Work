@@ -1,3 +1,4 @@
+from bcrypt import checkpw, hashpw, gensalt
 from flask import (
     flash,
     Flask,
@@ -8,10 +9,10 @@ from flask import (
     session,
     url_for
     )
-
 from functools import wraps
 from markdown import markdown
 import os
+import yaml
 
 app = Flask(__name__)
 app.secret_key = "secret1" # need for using flash
@@ -22,8 +23,29 @@ def get_data_path(): # replaces DATA_DIR
     else:
         return os.path.join(os.path.dirname(__file__), 'file_cms', 'data')
     
+def get_user_credentials():
+    file_name = 'users.yaml'
+    root_dir = os.path.dirname(__file__)
+    if app.config['TESTING']:
+        credential_path = os.path.join(root_dir, 'tests', file_name)
+    else:
+        credential_path = os.path.join(root_dir, 'file_cms', file_name)
+    
+    with open(credential_path, 'r') as file:
+        return yaml.safe_load(file)
+    
+def is_valid_credential(username, password):
+    data = get_user_credentials()
+
+    if username in data: # ensure input username in database
+        stored_hash = data[username].encode('utf-8')
+        pw_input_bytes = password.encode('utf-8')
+        return checkpw(pw_input_bytes, stored_hash) # ensure user pw input == hashed password
+    
+    return False
+
 def is_signed_in():
-    return session.get('username') == 'admin'
+    return session.get('username') 
 
 def require_login(func):
     @wraps(func)
@@ -35,7 +57,6 @@ def require_login(func):
         return func(*args, **kwargs)
     
     return decorated_func
-   
 
 def get_file_content(file_path):
     with open(file_path, "r") as file:
@@ -49,7 +70,7 @@ def update_file_content(file_name, new_content):
        file.write(new_content)
 
 @app.route("/")
-def index(): # TODO track if signed in
+def index():
     data_dir = get_data_path()
     files = [file for file in os.listdir(data_dir)]
     return render_template("index.html", files=files)
@@ -149,14 +170,15 @@ def display_signin():
 def signin():
     username = request.form.get("username").strip()
     password = request.form.get("password").strip()
+  
+    if is_valid_credential(username, password):
+            session['username'] = username # only want to store username
+            flash(f"Welcome {username}!")
+            return redirect(url_for("index"))
+    
+    flash("Invalid credentials, please try again")
+    return render_template("signin.html", username=username), 422
 
-    if username == "admin" and password == "secret": 
-        session['username'] = username # only want to store username
-        flash("Welcome!")
-        return redirect(url_for("index"))
-    else:
-        flash("Invalid credentials, please try again")
-        return render_template("signin.html", username=username), 422 # maybe dont need the username(?)
 
 @app.route("/users/signout", methods=["POST"])
 def signout():

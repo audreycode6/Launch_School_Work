@@ -1,0 +1,1 @@
+A web application that lets users view, edit, and create documents and sign in and out.
