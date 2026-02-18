@@ -3,26 +3,33 @@ import psycopg2
 from psycopg2 import extras
 from sys import argv
 from textwrap import dedent
+from contextlib import contextmanager
 
 class ExpenseData:
 
-    def list_expenses(self):
+    @contextmanager
+    def _database_connect(self):
         connection = psycopg2.connect(dbname='expense')
         try:
             with connection:
-                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                    cursor.execute('SELECT * FROM expenses ORDER BY created_on;')
-                    expenses = cursor.fetchall()
-
+                yield connection
         finally:
             connection.close()
-        
+
+    def list_expenses(self):
+
+        with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute('SELECT * FROM expenses ORDER BY created_on;')
+                expenses = cursor.fetchall()
+
         if expenses == []:
             print('No expenses to see yet ...')
             return
 
         total_amount = 0
         results = []
+        
         for expense in expenses:
             columns = [
                 str(expense['id']).rjust(3),
@@ -47,41 +54,28 @@ class ExpenseData:
 
 
     def add_expense(self, amount, memo):
-        connection = psycopg2.connect(dbname='expense')
-        try:
-            with connection:
-                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                    cursor.execute('''INSERT INTO expenses (amount, memo, created_on)
-                    VALUES (%s, %s, NOW());''', (float(amount), memo, ))
-        finally:
-            connection.close()
+         with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute('''INSERT INTO expenses (amount, memo, created_on)
+                VALUES (%s, %s, NOW());''', (float(amount), memo, ))
 
 
     def clear(self):
-        connection = psycopg2.connect(dbname='expense')
-        try:
-            with connection:
-                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                    cursor.execute('DELETE FROM expenses;')
+        with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute('DELETE FROM expenses;')
 
                 print('All expenses have been deleted')
 
-        finally:
-            connection.close()
-
 
     def delete(self, number):
-        connection = psycopg2.connect(dbname='expense')
-        try:
-            with connection:
-                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                    cursor.execute('SELECT * FROM expenses WHERE id = %s;', (int(number),)) 
-                    expense = cursor.fetchall()
+        with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute('SELECT * FROM expenses WHERE id = %s;', (int(number),)) 
+                expense = cursor.fetchall()
 
-                    cursor.execute('DELETE FROM expenses WHERE id = %s;', (int(number),))
-                    
-        finally:
-            connection.close()
+                cursor.execute('DELETE FROM expenses WHERE id = %s;', (int(number),))
+
 
         for row in expense:
             columns = [
@@ -95,15 +89,10 @@ class ExpenseData:
         
 
     def search(self, query):
-        connection = psycopg2.connect(dbname='expense')
-        try:
-            with connection:
-                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                    cursor.execute("SELECT * FROM expenses WHERE memo LIKE %s;", (query,) ) # TODO use '% {query} %' for it to just need to have word somewhere in ...
-                    expenses = cursor.fetchall()
-
-        finally: 
-            connection.close()
+        with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM expenses WHERE memo LIKE %s;", (query,) ) # TODO use '% {query} %' for it to just need to have word somewhere in ...
+                expenses = cursor.fetchall()
 
         result_total = len(expenses)
 
@@ -125,20 +114,16 @@ class ExpenseData:
         print(f"""{description} \n{'\n'.join(results)}""") 
 
 
-    def reset_rows(self):
-        connection = psycopg2.connect(dbname='expense')
-        try:
-            with connection:
-                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                    cursor.execute('''INSERT INTO expenses
-                    (amount, memo, created_on) VALUES
-                    (5.99, 'coffee', NOW() ),
-                    (123.45, 'subscription', NOW()),
-                    (67, 'your mom', NOW());'''
-                    )
+    def add_rows(self):
+        with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute('''INSERT INTO expenses
+                (amount, memo, created_on) VALUES
+                (5.99, 'coffee', NOW() ),
+                (123.45, 'subscription', NOW()),
+                (67, 'your mom', NOW());'''
+                )
 
-        finally: 
-            connection.close()
 
 class CLI():
     def __init__(self):
@@ -182,7 +167,7 @@ class CLI():
                     self.expense_instance.list_expenses()
 
                 case 'reset':
-                    self.expense_instance.reset_rows()
+                    self.expense_instance.add_rows()
 
                 case "delete":
                     if argument_length == 2: 
@@ -190,7 +175,7 @@ class CLI():
                         if argument.isnumeric():
                             self.expense_instance.delete(argument)
                     else:
-                        print('Oops! Please enter a valid number corresponding'\
+                        print('Oops! Please enter a valid number corresponding '\
                         'to the id of the expense you are looking for.')
 
                 case "search":
