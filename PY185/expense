@@ -67,7 +67,7 @@ def add(amount, memo):
         with connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                 cursor.execute(f'''INSERT INTO expenses (amount, memo, created_on)
-                VALUES ({float(amount)}, '{memo}', NOW());''')
+                VALUES ({float(amount)}, '{memo}', NOW());''') # TODO replace wiht paramterized query
 
     finally:
         connection.close()
@@ -91,10 +91,10 @@ def delete(number):
     try:
         with connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute(f'SELECT * FROM expenses WHERE id = {int(number)};')
+                cursor.execute(f'SELECT * FROM expenses WHERE id = {int(number)};') # TODO replace wiht paramterized query
                 expense = cursor.fetchall()
 
-                cursor.execute(f'DELETE FROM expenses WHERE id = {int(number)};')
+                cursor.execute(f'DELETE FROM expenses WHERE id = {int(number)};') # TODO replace wiht paramterized query
                 
     finally:
         connection.close()
@@ -115,7 +115,7 @@ def search(query):
     try:
         with connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute(f"SELECT * FROM expenses WHERE memo LIKE '%{query}%';")
+                cursor.execute(f"SELECT * FROM expenses WHERE memo LIKE '%{query}%';") # TODO replace wiht paramterized query
                 expenses = cursor.fetchall()
 
     finally: 
@@ -187,13 +187,13 @@ def main():
 
             if command == 'delete':
                 if argument.isnumeric():
-                    delete(argument)
+                    delete(argument) # TODO replace with parematized query
                 else:
                     print('Oops! Please enter a valid number corresponding'\
                     'to the id of the expense you are looking for.')
 
             if command == 'search': # <memo> needs to be in quotes to be 1 arg
-                search(argument) # TODO handle bad input (arg is not a single string)
+                search(argument) # TODO replace with parematized query
 
 
         elif argument_length == 4: # ./expense add <AMOUNT MEMO>
