@@ -4,212 +4,213 @@ from psycopg2 import extras
 from sys import argv
 from textwrap import dedent
 
-# IF no arg
-def display_help():
-    prompt = """
-    An expense recording system
+class ExpenseData:
 
-    Commands:
+    def list_expenses(self):
+        connection = psycopg2.connect(dbname='expense')
+        try:
+            with connection:
+                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                    cursor.execute('SELECT * FROM expenses ORDER BY created_on;')
+                    expenses = cursor.fetchall()
 
-    add AMOUNT MEMO [DATE] - record a new expense
-    clear - delete all expenses
-    list - list all expenses
-    delete NUMBER - remove expense with id NUMBER
-    search QUERY - list expenses with a matching memo field
-    """
+        finally:
+            connection.close()
+        
+        if expenses == []:
+            print('No expenses to see yet ...')
+            return
 
-    print(dedent(prompt))
+        total_amount = 0
+        results = []
+        for expense in expenses:
+            columns = [
+                str(expense['id']).rjust(3),
+                str(expense['created_on']),
+                str(expense['amount']).rjust(12),
+                str(expense['memo'])
+            ]
+            total_amount += expense['amount']
+            results.append(" | ".join(columns))
 
-
-def list_expenses():
-    connection = psycopg2.connect(dbname='expense')
-    try:
-        with connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute('SELECT * FROM expenses ORDER BY created_on;')
-                expenses = cursor.fetchall()
-
-    finally:
-        connection.close()
-    
-    if expenses == []:
-        print('No expenses to see yet ...')
-        return
-
-    total_amount = 0
-    results = []
-    for expense in expenses:
-        columns = [
-            str(expense['id']).rjust(3),
-            str(expense['created_on']),
-            str(expense['amount']).rjust(12),
-            str(expense['memo'])
-        ]
-        total_amount += expense['amount']
-        results.append(" | ".join(columns))
-
-    expense_count = len(expenses)
-    if expense_count == 1:
-       expense_description = "There is 1 expense. \n"
-    else:
-        expense_description = f"There are {expense_count} expenses. \n"
+        expense_count = len(expenses)
+        if expense_count == 1:
+            expense_description = "There is 1 expense. \n"
+        else:
+            expense_description = f"There are {expense_count} expenses. \n"
 
 
-    print(expense_description)
-    print('\n'.join(results))
-    print("\n--------------------------------------------------")
-    print(f"\nTotal {str(total_amount).rjust(25)}")
+        print(expense_description)
+        print('\n'.join(results))
+        print("\n--------------------------------------------------")
+        print(f"\nTotal {str(total_amount).rjust(25)}")
 
 
-def add(amount, memo):
-    connection = psycopg2.connect(dbname='expense')
-    try:
-        with connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute('''INSERT INTO expenses (amount, memo, created_on)
-                VALUES (%s, %s, NOW());''', (float(amount), memo, ))
-    finally:
-        connection.close()
+    def add_expense(self, amount, memo):
+        connection = psycopg2.connect(dbname='expense')
+        try:
+            with connection:
+                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                    cursor.execute('''INSERT INTO expenses (amount, memo, created_on)
+                    VALUES (%s, %s, NOW());''', (float(amount), memo, ))
+        finally:
+            connection.close()
 
 
-def clear():
-    connection = psycopg2.connect(dbname='expense')
-    try:
-        with connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute('DELETE FROM expenses;')
+    def clear(self):
+        connection = psycopg2.connect(dbname='expense')
+        try:
+            with connection:
+                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                    cursor.execute('DELETE FROM expenses;')
 
-    finally:
-        connection.close()
+                print('All expenses have been deleted')
 
-    print('All expenses have been deleted')
-
-
-def delete(number):
-    connection = psycopg2.connect(dbname='expense')
-    try:
-        with connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute('SELECT * FROM expenses WHERE id = %s;', (int(number),)) 
-                expense = cursor.fetchall()
-
-                cursor.execute('DELETE FROM expenses WHERE id = %s;', (int(number),))
-                
-    finally:
-        connection.close()
-
-    for row in expense:
-        columns = [
-            str(row['id']).rjust(3),
-            str(row['created_on']),
-            str(row['amount']).rjust(12),
-            str(row['memo'])
-        ]
-
-    print(f"""The following expense has been deleted:\n {" | ".join(columns)}""")
-    
-
-def search(query):
-    connection = psycopg2.connect(dbname='expense')
-    try:
-        with connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                # '%{query}%'
-                cursor.execute("SELECT * FROM expenses WHERE memo LIKE %s;", (query,) ) # TODO use '% {query} %' for it to just need to have word somewhere in ...
-                expenses = cursor.fetchall()
-
-    finally: 
-        connection.close()
-
-    result_total = len(expenses)
-
-    results = []
-    for expense in expenses:
-        columns = [
-            str(expense['id']).rjust(3),
-            str(expense['created_on']),
-            str(expense['amount']).rjust(12),
-            str(expense['memo'])
-        ]
-        results.append(" | ".join(columns))
-
-    if result_total == 1:
-        description = 'There is 1 expense.'
-    else:
-        description = f'There are {result_total} expenses.'
-
-    print(f"""{description} \n{'\n'.join(results)}""") 
+        finally:
+            connection.close()
 
 
-def reset_rows():
-    connection = psycopg2.connect(dbname='expense')
-    try:
-        with connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute('''INSERT INTO expenses
-                (amount, memo, created_on) VALUES
-                (5.99, 'coffee', NOW() ),
-                (123.45, 'subscription', NOW()),
-                (67, 'your mom', NOW());'''
-                )
+    def delete(self, number):
+        connection = psycopg2.connect(dbname='expense')
+        try:
+            with connection:
+                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                    cursor.execute('SELECT * FROM expenses WHERE id = %s;', (int(number),)) 
+                    expense = cursor.fetchall()
 
-    finally: 
-        connection.close()
+                    cursor.execute('DELETE FROM expenses WHERE id = %s;', (int(number),))
+                    
+        finally:
+            connection.close()
 
-'''
---------------------------------
-CALL COMMANDS BASED ON ARGUMENTS
---------------------------------
-'''
+        for row in expense:
+            columns = [
+                str(row['id']).rjust(3),
+                str(row['created_on']),
+                str(row['amount']).rjust(12),
+                str(row['memo'])
+            ]
 
-def main():
+        print(f"""The following expense has been deleted:\n {" | ".join(columns)}""")
+        
 
-    argument_length = len(argv)
+    def search(self, query):
+        connection = psycopg2.connect(dbname='expense')
+        try:
+            with connection:
+                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                    cursor.execute("SELECT * FROM expenses WHERE memo LIKE %s;", (query,) ) # TODO use '% {query} %' for it to just need to have word somewhere in ...
+                    expenses = cursor.fetchall()
 
-    if argument_length == 1: # ./expense
-        display_help()
+        finally: 
+            connection.close()
 
-    else:
-        command = argv[1]
-        if argument_length == 2: # ./expense [list, clear, reset]
-            if command == 'list':
-                list_expenses()
-            if command == 'clear':
-                confirm = input('This will remove all expenses.' \
-                                ' Are you sure? (enter y to confirm)')
-                if confirm == 'y':
-                    clear()
-            if command == 'reset':
-                reset_rows()
+        result_total = len(expenses)
 
-        elif argument_length == 3: #./expense [delete <num>, search <memo>]
-            argument = argv[2]
+        results = []
+        for expense in expenses:
+            columns = [
+                str(expense['id']).rjust(3),
+                str(expense['created_on']),
+                str(expense['amount']).rjust(12),
+                str(expense['memo'])
+            ]
+            results.append(" | ".join(columns))
 
-            if command == 'delete':
-                if argument.isnumeric():
-                    delete(argument) # TODO replace with parematized query
-                else:
-                    print('Oops! Please enter a valid number corresponding'\
-                    'to the id of the expense you are looking for.')
+        if result_total == 1:
+            description = 'There is 1 expense.'
+        else:
+            description = f'There are {result_total} expenses.'
 
-            if command == 'search': # <memo> needs to be in quotes to be 1 arg
-                search(argument) # TODO replace with parematized query
+        print(f"""{description} \n{'\n'.join(results)}""") 
 
 
-        elif argument_length == 4: # ./expense add <AMOUNT MEMO>
-            if command == 'add':
-                amount = argv[2]
-                try: 
-                    float(amount)
-                except ValueError: 
-                    print('You must provide a numeric' \
-                    ' amount for the 2nd argument (amount).')
-                    return
-                if float(amount) < 0:
-                    print('You must provide a non negative number.')
-                    return
-                memo = argv[3]
-                add(amount, memo)
+    def reset_rows(self):
+        connection = psycopg2.connect(dbname='expense')
+        try:
+            with connection:
+                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                    cursor.execute('''INSERT INTO expenses
+                    (amount, memo, created_on) VALUES
+                    (5.99, 'coffee', NOW() ),
+                    (123.45, 'subscription', NOW()),
+                    (67, 'your mom', NOW());'''
+                    )
+
+        finally: 
+            connection.close()
+
+class CLI():
+    def __init__(self):
+        self.expense_instance = ExpenseData()
+
+    # IF no arg
+    def display_help(self):
+        prompt = """
+        An expense recording system
+
+        Commands:
+
+        add AMOUNT MEMO [DATE] - record a new expense
+        clear - delete all expenses
+        list - list all expenses
+        delete NUMBER - remove expense with id NUMBER
+        search QUERY - list expenses with a matching memo field
+        """
+
+        print(dedent(prompt))
+
+
+    def run(self, arg_list):
+
+        argument_length = len(arg_list)
+
+        if argument_length == 0: # ./expense
+            self.display_help()
+
+        else:
+            command = arg_list[0]
+
+            if argument_length == 1: # ./expense [list, clear, reset]
+                if command == 'list':
+                    self.expense_instance.list_expenses()
+                if command == 'clear':
+                    confirm = input('This will remove all expenses.' \
+                                    ' Are you sure? (enter y to confirm)')
+                    if confirm == 'y':
+                        self.expense_instance.clear()
+                if command == 'reset':
+                    self.expense_instance.reset_rows()
+
+            elif argument_length == 2: #./expense [delete <num>, search <memo>]
+                argument = arg_list[1]
+
+                if command == 'delete':
+                    if argument.isnumeric():
+                        self.expense_instance.delete(argument)
+                    else:
+                        print('Oops! Please enter a valid number corresponding'\
+                        'to the id of the expense you are looking for.')
+
+                if command == 'search': # <memo> needs to be in quotes to be 1 arg
+                    self.expense_instance.search(argument)
+
+
+            elif argument_length == 3: # ./expense add <AMOUNT MEMO>
+                if command == 'add':
+                    amount = arg_list[1]
+                    try: 
+                        float(amount)
+                    except ValueError: 
+                        print('You must provide a numeric' \
+                        ' amount for the 2nd argument (amount).')
+                        return
+                    if float(amount) < 0:
+                        print('You must provide a non negative number.')
+                        return
+                    memo = arg_list[2]
+
+                    self.expense_instance.add_expense(amount, memo)
 
 
         # else:
@@ -217,4 +218,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cli_instance = CLI()
+    cli_instance.run(argv[1:])
