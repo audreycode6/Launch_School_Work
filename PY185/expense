@@ -66,9 +66,8 @@ def add(amount, memo):
     try:
         with connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute(f'''INSERT INTO expenses (amount, memo, created_on)
-                VALUES ({float(amount)}, '{memo}', NOW());''') # TODO replace wiht paramterized query
-
+                cursor.execute('''INSERT INTO expenses (amount, memo, created_on)
+                VALUES (%s, %s, NOW());''', (float(amount), memo, ))
     finally:
         connection.close()
 
@@ -91,10 +90,10 @@ def delete(number):
     try:
         with connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute(f'SELECT * FROM expenses WHERE id = {int(number)};') # TODO replace wiht paramterized query
+                cursor.execute('SELECT * FROM expenses WHERE id = %s;', (int(number),)) 
                 expense = cursor.fetchall()
 
-                cursor.execute(f'DELETE FROM expenses WHERE id = {int(number)};') # TODO replace wiht paramterized query
+                cursor.execute('DELETE FROM expenses WHERE id = %s;', (int(number),))
                 
     finally:
         connection.close()
@@ -115,7 +114,8 @@ def search(query):
     try:
         with connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute(f"SELECT * FROM expenses WHERE memo LIKE '%{query}%';") # TODO replace wiht paramterized query
+                # '%{query}%'
+                cursor.execute("SELECT * FROM expenses WHERE memo LIKE %s;", (query,) ) # TODO use '% {query} %' for it to just need to have word somewhere in ...
                 expenses = cursor.fetchall()
 
     finally: 
@@ -209,9 +209,6 @@ def main():
                     print('You must provide a non negative number.')
                     return
                 memo = argv[3]
-                if "'" in memo: # TODO handle bad input like apostrophe to prevent sql injection
-                    print('Error with the memo argument: bad input')
-                    return
                 add(amount, memo)
 
 
