@@ -144,7 +144,7 @@ class CLI():
     def __init__(self):
         self.expense_instance = ExpenseData()
 
-    # IF no arg
+    # IF no values in arg_list
     def display_help(self):
         prompt = """
         An expense recording system
@@ -166,55 +166,62 @@ class CLI():
         argument_length = len(arg_list)
 
         if argument_length == 0: # ./expense
-            self.display_help()
+            command = None
 
         else:
             command = arg_list[0]
 
-            if argument_length == 1: # ./expense [list, clear, reset]
-                if command == 'list':
-                    self.expense_instance.list_expenses()
-                if command == 'clear':
+            match command: # TODO
+                case 'clear':
                     confirm = input('This will remove all expenses.' \
                                     ' Are you sure? (enter y to confirm)')
                     if confirm == 'y':
                         self.expense_instance.clear()
-                if command == 'reset':
+
+                case 'list':
+                    self.expense_instance.list_expenses()
+
+                case 'reset':
                     self.expense_instance.reset_rows()
 
-            elif argument_length == 2: #./expense [delete <num>, search <memo>]
-                argument = arg_list[1]
-
-                if command == 'delete':
-                    if argument.isnumeric():
-                        self.expense_instance.delete(argument)
+                case "delete":
+                    if argument_length == 2: 
+                        argument = arg_list[1]
+                        if argument.isnumeric():
+                            self.expense_instance.delete(argument)
                     else:
                         print('Oops! Please enter a valid number corresponding'\
                         'to the id of the expense you are looking for.')
 
-                if command == 'search': # <memo> needs to be in quotes to be 1 arg
-                    self.expense_instance.search(argument)
-
-
-            elif argument_length == 3: # ./expense add <AMOUNT MEMO>
-                if command == 'add':
-                    amount = arg_list[1]
-                    try: 
-                        float(amount)
-                    except ValueError: 
-                        print('You must provide a numeric' \
-                        ' amount for the 2nd argument (amount).')
+                case "search":
+                    if argument_length == 2:
+                        argument = arg_list[1]
+                        self.expense_instance.search(argument)
+                    else:
+                        print("Oops! You must provide a memo.")
                         return
-                    if float(amount) < 0:
-                        print('You must provide a non negative number.')
+
+                case "add":
+                    if argument_length == 3:
+                        amount = arg_list[1]
+                        try: 
+                            float(amount)
+                        except ValueError: 
+                            print('You must provide a numeric' \
+                            ' amount for the 2nd argument (amount).')
+                            return
+                        if float(amount) < 0:
+                            print('You must provide a non negative number.')
+                            return
+                        memo = arg_list[2]
+
+                        self.expense_instance.add_expense(amount, memo)
+                    else:
+                        print("Oops! You must provide an amount and memo.")
                         return
-                    memo = arg_list[2]
 
-                    self.expense_instance.add_expense(amount, memo)
-
-
-        # else:
-        #     return "Not a valid command, enter './expense for list of acceptable commands"
+                case _:
+                    self.display_help()
 
 
 if __name__ == "__main__":
