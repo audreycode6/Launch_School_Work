@@ -21,22 +21,6 @@ def display_help():
     print(dedent(prompt))
 
 
-def format_memo(memo):
-    if len(memo) > 10:
-        memo_list = memo.split()
-        line = ''
-        new_memo = ""
-        for word in memo_list:
-            if len(line + " " + word) <= 10:
-                line += f'{word} ' 
-                new_memo += ' ' + word
-            else:
-                new_memo = new_memo.center(11)+ ' |\n    |          | '
-                new_memo += word.center(11) # TODO dont center if going to building new 
-                line = word 
-        return new_memo
-    return memo
-
 def list_expenses():
     connection = psycopg2.connect(dbname='expense')
     try:
@@ -51,17 +35,15 @@ def list_expenses():
     if expenses == []:
         print('No expenses to see yet ...')
         return
-        
 
     total_amount = 0
     results = []
     for expense in expenses:
-        memo = format_memo(str(expense['memo']))
         columns = [
             str(expense['id']).rjust(3),
-            str(expense['amount']).rjust(8),
-            str(memo).center(11),
-            str(expense['created_on'])
+            str(expense['created_on']),
+            str(expense['amount']).rjust(12),
+            str(expense['memo'])
         ]
         total_amount += expense['amount']
         results.append(" | ".join(columns))
@@ -74,11 +56,9 @@ def list_expenses():
 
 
     print(expense_description)
-    print(' id |  amount  |    memo     | created_on'
-        '\n----+----------+-------------+------------')
     print('\n'.join(results))
-    print("\n------------------------------------------")
-    print(f"\nTotal {str(total_amount).rjust(35)}")
+    print("\n--------------------------------------------------")
+    print(f"\nTotal {str(total_amount).rjust(25)}")
 
 
 def add(amount, memo):
@@ -151,7 +131,7 @@ def search(query):
             str(expense['amount']).rjust(12),
             str(expense['memo'])
         ]
-        results.append("| ".join(columns))
+        results.append(" | ".join(columns))
 
     if result_total == 1:
         description = 'There is 1 expense.'
@@ -175,16 +155,6 @@ def reset_rows():
 
     finally: 
         connection.close()
-
-def fix_apostrophe_memo(memo):
-    new_memo = ""
-    for char in memo:
-        if char == "'":
-            new_memo += "'"
-        new_memo += char
-    
-    return new_memo
-
 
 '''
 --------------------------------
@@ -229,14 +199,25 @@ def main():
         elif argument_length == 4: # ./expense add <AMOUNT MEMO>
             if command == 'add':
                 amount = argv[2]
-                if not amount.isnumeric() or float(amount) < 0:
-                    print('You must provide a non negative numeric' \
+                try: 
+                    float(amount)
+                except ValueError: 
+                    print('You must provide a numeric' \
                     ' amount for the 2nd argument (amount).')
                     return
+                if float(amount) < 0:
+                    print('You must provide a non negative number.')
+                    return
                 memo = argv[3]
-                if "'" in memo:
-                    memo = fix_apostrophe_memo(memo)
-                add(amount, memo) 
+                if "'" in memo: # TODO handle bad input like apostrophe to prevent sql injection
+                    print('Error with the memo argument: bad input')
+                    return
+                add(amount, memo)
+
+
+        # else:
+        #     return "Not a valid command, enter './expense for list of acceptable commands"
+
 
 if __name__ == "__main__":
     main()
