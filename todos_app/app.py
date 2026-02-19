@@ -1,3 +1,4 @@
+import secrets
 from uuid import uuid4
 from functools import wraps
 from flask import (
@@ -24,7 +25,7 @@ from todos.utils import (
 )
 
 app = Flask(__name__)
-app.secret_key='secrets1'
+app.secret_key=secrets.token_hex(32)
 
 def require_list(f):
     @wraps(f)
