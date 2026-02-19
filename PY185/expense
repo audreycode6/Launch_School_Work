@@ -6,6 +6,8 @@ from textwrap import dedent
 from contextlib import contextmanager
 
 class ExpenseData:
+    def __init__(self):
+        self._set_up_schema()
 
     @contextmanager
     def _database_connect(self):
@@ -49,8 +51,22 @@ class ExpenseData:
                 f"\n{'-'*50}"
                 f"\nTotal {str(total_amount).rjust(25)}")
                 return output
+            
+    def _set_up_schema(self):
+        with self._database_connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("""SELECT COUNT(*) FROM information_schema.tables
+                                WHERE table_schema = 'public' AND 
+                                table_name = 'expenses';""")
+                table_exists = cursor.fetchone()
 
-
+                if not table_exists[0]:
+                    cursor.execute('''CREATE TABLE expenses (
+                                    id serial PRIMARY KEY,
+                                    amount numeric(6,2) NOT NULL CHECK (amount >= 0.01),
+                                    memo text NOT NULL,
+                                    created_on date NOT NULL);''')
+    
     def list_expenses(self):
         with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
@@ -134,7 +150,6 @@ class CLI():
 
 
     def run(self, arg_list):
-
         argument_length = len(arg_list)
 
         if argument_length == 0: # ./expense
