@@ -82,16 +82,15 @@ class ExpenseData:
         print(f"""The following expense has been deleted:\n {" | ".join(columns)}""")
 
     def search_expense(self, query):
-        query = f'%{query}%'
         with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM expenses WHERE memo ILIKE %s;", (query,) ) 
+                sql_query = "SELECT * FROM expenses WHERE memo ILIKE %s;"
+                cursor.execute(sql_query, (f'%{query}%',) ) 
                 expenses = cursor.fetchall()
 
-        result_total = len(expenses)
-
         results = self._display_expenses(expenses)
-
+        
+        result_total = len(expenses)
         if result_total == 1:
             description = 'There is 1 expense.'
         else:
