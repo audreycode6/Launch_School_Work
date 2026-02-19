@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <form action="{{ url_for('create_list') }}" method="post">
+    <dl>
+      <dt>
+        <label for="list_title">Enter the title for your new list:</label>
+      </dt>
+      <dd>
+        <input type="text" name="list_title" placeholder="List Title" value="{{ title }}">
+      </dd>
+    </dl>
+    <fieldset class="actions">
+      <input type="submit" value="Save">
+      <a href="{{ url_for('get_lists') }}">Cancel</a>    </fieldset>
+  </form>
+{% endblock %}

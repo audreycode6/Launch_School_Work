@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <section id="todos">
+    <header>
+      <h2>Editing '{{ lst.title }}'</h2>
+      <ul>
+        <li>
+          <form class="delete" action="{{ url_for('delete_list', list_id=lst.id) }}"
+                method="post">
+            <button type="submit" class="delete">Delete List</button>
+          </form>
+        </li>
+      </ul>
+    </header>
+  </section>
+
+  <form action="{{ url_for('update_list', list_id=lst.id) }}" method="post">
+    <dl>
+      <dt>
+        <label for="list_title">Enter the new list title:</label>
+      </dt>
+      <dd>
+        <input type="text" name="list_title" placeholder="List Title"
+               value="{{ title if title is defined else lst.title }}">
+
+      </dd>
+    </dl>
+    <fieldset class="actions">
+      <input type="submit" value="Save">
+      <a href="{{ url_for('show_list', list_id=lst.id) }}">Cancel</a>
+    </fieldset>
+  </form>
+{% endblock %}
