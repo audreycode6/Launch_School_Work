@@ -16,7 +16,8 @@ class ExpenseData:
         finally:
             connection.close()
 
-    def _display_expenses(self, expenses):
+    def _format_expenses(self, expenses, total_expenses=False):
+        total_amount = 0
         results = []
         for expense in expenses:
             columns = [
@@ -25,8 +26,29 @@ class ExpenseData:
                 str(expense['amount']).rjust(12),
                 str(expense['memo'])
             ]
+            total_amount += expense['amount']
             results.append(" | ".join(columns))
+
+        if total_expenses:
+                return results, round(total_amount, 2)
         return results
+    
+    def _format_results(self, expenses):
+        expense_count = len(expenses)
+        match expense_count:
+            case 0:
+                return 'There are no expenses.'
+            case 1:
+                expense_description = "There is 1 expense. \n"
+                results = self._format_expenses(expenses)
+                return f'{expense_description}{"\n".join(results)}'
+            case _:
+                expense_description = f"There are {expense_count} expenses. \n"
+                results, total_amount = self._format_expenses(expenses, True)
+                output = (f"{expense_description}{'\n'.join(results)}"
+                f"\n{'-'*50}"
+                f"\nTotal {str(total_amount).rjust(25)}")
+                return output
 
 
     def list_expenses(self):
@@ -34,24 +56,8 @@ class ExpenseData:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                 cursor.execute('SELECT * FROM expenses ORDER BY created_on;')
                 expenses = cursor.fetchall()
-
-        expense_count = len(expenses)
-        if expense_count == 0:
-            print('No expenses to see yet ...')
-            return
-        if expense_count == 1:
-            expense_description = "There is 1 expense. \n"
-        else:
-            expense_description = f"There are {expense_count} expenses. \n"
-
-        results = self._display_expenses(expenses)
-        # print(f'TEST {expenses} \n NEXT: {results}')
-        total_amount = 'TODO'
-
-        print(expense_description)
-        print('\n'.join(results))
-        print("\n--------------------------------------------------")
-        print(f"\nTotal {str(total_amount).rjust(25)}") # TODO
+        result = self._format_results(expenses)
+        print(result)
 
 
     def add_expense(self, amount, memo):
@@ -61,7 +67,7 @@ class ExpenseData:
                 VALUES (%s, %s, NOW());''', (float(amount), memo, ))
 
 
-    def clear(self):
+    def delete_all_expenses(self):
         with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                 cursor.execute('DELETE FROM expenses;')
@@ -73,30 +79,26 @@ class ExpenseData:
         with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                 cursor.execute('SELECT * FROM expenses WHERE id = %s;', (int(number),)) 
-                expense = cursor.fetchall()
+                expense = cursor.fetchone()
+
+                if expense == []:
+                    print(f"There is no expense with id '{number}'")
+                    return
 
                 cursor.execute('DELETE FROM expenses WHERE id = %s;', (int(number),))
 
-
-        columns = self._display_expenses(expense)
+        columns = self._format_expenses(expense)
         print(f"""The following expense has been deleted:\n {" | ".join(columns)}""")
 
-    def search_expense(self, query):
+    def search_expenses(self, query):
         with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                 sql_query = "SELECT * FROM expenses WHERE memo ILIKE %s;"
                 cursor.execute(sql_query, (f'%{query}%',) ) 
                 expenses = cursor.fetchall()
 
-        results = self._display_expenses(expenses)
-        
-        result_total = len(expenses)
-        if result_total == 1:
-            description = 'There is 1 expense.'
-        else:
-            description = f'There are {result_total} expenses.'
-
-        print(f"""{description} \n{'\n'.join(results)}""") 
+        result = self._format_results(expenses)
+        print(result)
 
 
     def add_rows(self):
@@ -144,9 +146,9 @@ class CLI():
             match command: # TODO
                 case 'clear':
                     confirm = input('This will remove all expenses.' \
-                                    ' Are you sure? (enter y to confirm)')
-                    if confirm == 'y':
-                        self.expense_instance.clear()
+                        ' Are you sure? (enter y to confirm)')
+                    if confirm.lower() == 'y':
+                        self.expense_instance.delete_all_expenses()
 
                 case 'list':
                     self.expense_instance.list_expenses()
@@ -160,15 +162,14 @@ class CLI():
                         if argument.isnumeric():
                             self.expense_instance.delete_expense(argument)
                     else:
-                        print('Oops! Please enter a valid number corresponding '\
-                        'to the id of the expense you are looking for.')
+                        print('Oops! You must provide an expense ID.')
 
                 case "search":
                     if argument_length == 2:
                         argument = arg_list[1]
-                        self.expense_instance.search_expense(argument)
+                        self.expense_instance.search_expenses(argument)
                     else:
-                        print("Oops! You must provide a memo.")
+                        print("Oops! You must provide a search query.")
                         return
 
                 case "add":
