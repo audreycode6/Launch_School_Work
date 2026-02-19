@@ -16,20 +16,8 @@ class ExpenseData:
         finally:
             connection.close()
 
-    def list_expenses(self):
-
-        with self._database_connect() as connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute('SELECT * FROM expenses ORDER BY created_on;')
-                expenses = cursor.fetchall()
-
-        if expenses == []:
-            print('No expenses to see yet ...')
-            return
-
-        total_amount = 0
+    def _display_expenses(self, expenses):
         results = []
-        
         for expense in expenses:
             columns = [
                 str(expense['id']).rjust(3),
@@ -37,20 +25,33 @@ class ExpenseData:
                 str(expense['amount']).rjust(12),
                 str(expense['memo'])
             ]
-            total_amount += expense['amount']
             results.append(" | ".join(columns))
+        return results
+
+
+    def list_expenses(self):
+        with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute('SELECT * FROM expenses ORDER BY created_on;')
+                expenses = cursor.fetchall()
 
         expense_count = len(expenses)
+        if expense_count == 0:
+            print('No expenses to see yet ...')
+            return
         if expense_count == 1:
             expense_description = "There is 1 expense. \n"
         else:
             expense_description = f"There are {expense_count} expenses. \n"
 
+        results = self._display_expenses(expenses)
+        # print(f'TEST {expenses} \n NEXT: {results}')
+        total_amount = 'TODO'
 
         print(expense_description)
         print('\n'.join(results))
         print("\n--------------------------------------------------")
-        print(f"\nTotal {str(total_amount).rjust(25)}")
+        print(f"\nTotal {str(total_amount).rjust(25)}") # TODO
 
 
     def add_expense(self, amount, memo):
@@ -68,7 +69,7 @@ class ExpenseData:
                 print('All expenses have been deleted')
 
 
-    def delete(self, number):
+    def delete_expense(self, number):
         with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                 cursor.execute('SELECT * FROM expenses WHERE id = %s;', (int(number),)) 
@@ -77,34 +78,19 @@ class ExpenseData:
                 cursor.execute('DELETE FROM expenses WHERE id = %s;', (int(number),))
 
 
-        for row in expense:
-            columns = [
-                str(row['id']).rjust(3),
-                str(row['created_on']),
-                str(row['amount']).rjust(12),
-                str(row['memo'])
-            ]
-
+        columns = self._display_expenses(expense)
         print(f"""The following expense has been deleted:\n {" | ".join(columns)}""")
-        
 
-    def search(self, query):
+    def search_expense(self, query):
+        query = f'%{query}%'
         with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM expenses WHERE memo LIKE %s;", (query,) ) # TODO use '% {query} %' for it to just need to have word somewhere in ...
+                cursor.execute("SELECT * FROM expenses WHERE memo ILIKE %s;", (query,) ) 
                 expenses = cursor.fetchall()
 
         result_total = len(expenses)
 
-        results = []
-        for expense in expenses:
-            columns = [
-                str(expense['id']).rjust(3),
-                str(expense['created_on']),
-                str(expense['amount']).rjust(12),
-                str(expense['memo'])
-            ]
-            results.append(" | ".join(columns))
+        results = self._display_expenses(expenses)
 
         if result_total == 1:
             description = 'There is 1 expense.'
@@ -173,7 +159,7 @@ class CLI():
                     if argument_length == 2: 
                         argument = arg_list[1]
                         if argument.isnumeric():
-                            self.expense_instance.delete(argument)
+                            self.expense_instance.delete_expense(argument)
                     else:
                         print('Oops! Please enter a valid number corresponding '\
                         'to the id of the expense you are looking for.')
@@ -181,7 +167,7 @@ class CLI():
                 case "search":
                     if argument_length == 2:
                         argument = arg_list[1]
-                        self.expense_instance.search(argument)
+                        self.expense_instance.search_expense(argument)
                     else:
                         print("Oops! You must provide a memo.")
                         return
