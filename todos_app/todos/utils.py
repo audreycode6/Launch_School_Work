@@ -21,12 +21,6 @@ def is_list_completed(lst):
 def is_todo_completed(todo):
     return todo['completed']
 
-def mark_all_completed(lst):
-    for todo in lst['todos']:
-        todo['completed'] = True
-
-    return None
-
 def sort_items(items, select_completed):
     sorted_items = sorted(items, key=lambda item: item['title'].lower())
 
