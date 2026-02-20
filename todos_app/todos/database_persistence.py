@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 class DatabasePersistence:
     def __init__(self):
        pass
