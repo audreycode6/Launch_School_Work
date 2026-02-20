@@ -1,6 +1,20 @@
+from contextlib import contextmanager
+
+import psycopg2
+from psycopg2.extras import DictCursor
+
 class DatabasePersistence:
     def __init__(self):
        pass
+
+    @contextmanager
+    def _database_connect(self):
+        connection = psycopg2.connect(dbname='todos')
+        try:
+            with connection:
+                yield connection
+        finally:
+            connection.close()
 
     def all_lists(self):
         pass
