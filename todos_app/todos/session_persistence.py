@@ -44,3 +44,15 @@ class SessionPersistence:
 
         self.session.modified = True
 
+    def delete_todo_from_list(self, list_id, todo_id):
+        lst = self.find_list(list_id)
+        lst['todos'] = [todo for todo in lst['todos'] 
+                        if todo['id'] != todo_id]
+        self.session.modified = True
+
+
+    ''''def delete_todo_by_id(todo_id, lst):
+    lst['todos'] = [todo for todo in lst['todos'] if todo['id'] != todo_id]
+    return None
+    '''
+

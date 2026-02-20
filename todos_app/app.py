@@ -12,7 +12,6 @@ from flask import (
 )
 from werkzeug.exceptions import NotFound
 from todos.utils import (
-    delete_todo_by_id,
     error_for_list_title, 
     error_for_todo, 
     find_todo_by_id,
@@ -122,10 +121,8 @@ def update_todo_status(lst, todo, list_id, todo_id):
 @app.route("/lists/<list_id>/todos/<todo_id>/delete", methods=["POST"])
 @require_todo
 def delete_todo(lst, todo, list_id, todo_id):
-    delete_todo_by_id(todo_id, lst)
-
+    g.session_manager.delete_todo_from_list(list_id, todo_id)
     flash("The todo has been deleted.", "success")
-    session.modified = True
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route("/lists/<list_id>/complete_all", methods=["POST"])
