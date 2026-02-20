@@ -1,5 +1,4 @@
 import secrets
-from uuid import uuid4
 from functools import wraps
 from flask import (
     flash,
@@ -106,15 +105,9 @@ def create_todo(lst, list_id):
     if error:
         flash(error, "error")
         return render_template('list.html', lst=lst)
-
-    lst['todos'].append({
-        'id': str(uuid4()),
-        'title': todo_title,
-        'completed': False,
-    })
-
+    
+    g.session_manager.create_new_todo(list_id, todo_title)
     flash("The todo was added.", "success")
-    session.modified = True
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route("/lists/<list_id>/todos/<todo_id>/toggle", methods=["POST"])
