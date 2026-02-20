@@ -152,11 +152,9 @@ def edit_list(lst, list_id):
 @app.route("/lists/<list_id>/delete", methods=["POST"])
 @require_list
 def delete_list(lst, list_id):
-    session['lists'] = [lst for lst in session['lists']
-                        if lst['id'] != list_id]
-
+    g.session_manager.delete_list(list_id)
     flash("The list has been deleted.", "success")
-    session.modified = True
+
     return redirect(url_for('get_lists'))
 
 @app.route("/lists/<list_id>", methods=["POST"])

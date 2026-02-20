@@ -24,8 +24,12 @@ class SessionPersistence:
 
     def update_list_by_id(self, list_id, new_title):
         lst = self.find_list(list_id)
-        print(f'TEST updayte_list, find_list: {lst}')
         if lst:
             lst['title'] = new_title
             self.session.modified = True
+
+    def delete_list(self, list_id):
+        self.session['lists'] = [lst for lst in self.session['lists'] 
+                                if lst['id'] != list_id]
+        self.session.modified = True
 
