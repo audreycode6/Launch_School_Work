@@ -68,7 +68,7 @@ def index():
 
 @app.route("/lists")
 def get_lists():
-    lists = sort_items(session['lists'], is_list_completed)
+    lists = sort_items(g.session_manager.all_lists(), is_list_completed)
     return render_template('lists.html',
                            lists=lists,
                            todos_remaining=todos_remaining)
@@ -77,19 +77,14 @@ def get_lists():
 def create_list():
     title = request.form["list_title"].strip()
 
-    error = error_for_list_title(title, session['lists'])
+    error = error_for_list_title(title, g.session_manager.all_lists())
     if error:
         flash(error, "error")
         return render_template('new_list.html', title=title)
-
-    session['lists'].append({
-        'id': str(uuid4()),
-        'title': title,
-        'todos': [],
-    })
-
+    
+    g.session_manager.create_new_list(title)
     flash("The list has been created.", "success")
-    session.modified = True
+
     return redirect(url_for('get_lists'))
 
 @app.route("/lists/new")
