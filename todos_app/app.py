@@ -164,7 +164,7 @@ def delete_list(lst, list_id):
 def update_list(lst, list_id):
     title = request.form["list_title"].strip()
 
-    error = error_for_list_title(title, session['lists'])
+    error = error_for_list_title(title, g.session_manager.all_lists())
     if error:
         flash(error, "error")
         return render_template('edit_list.html', lst=lst, title=title)
