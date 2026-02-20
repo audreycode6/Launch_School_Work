@@ -29,7 +29,14 @@ class DatabasePersistence:
         return lists
 
     def find_list(self, list_id):
-        pass
+        query = "SELECT * FROM lists WHERE id = %s"
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (list_id,))
+                lst = dict(cursor.fetchone())
+
+        lst.setdefault('todos', [])
+        return lst
     
     def create_new_list(self, title):
         pass
