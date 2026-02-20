@@ -4,6 +4,7 @@ from functools import wraps
 from flask import (
     flash,
     Flask,
+    g,
     redirect,
     render_template,
     request,
@@ -15,7 +16,6 @@ from todos.utils import (
     delete_todo_by_id,
     error_for_list_title, 
     error_for_todo, 
-    find_list_by_id,
     find_todo_by_id,
     is_list_completed,
     is_todo_completed,
@@ -24,6 +24,8 @@ from todos.utils import (
     todos_remaining,
 )
 
+from todos.session_persistence import SessionPersistence
+
 app = Flask(__name__)
 app.secret_key=secrets.token_hex(32)
 
@@ -31,7 +33,7 @@ def require_list(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         list_id = kwargs.get('list_id')
-        lst = find_list_by_id(list_id, session['lists'])
+        lst = g.session_manager.find_list(list_id)
         if not lst:
             raise NotFound(description="List not found")
         return f(lst=lst, *args, **kwargs)
@@ -57,9 +59,8 @@ def list_utilities_processor():
     )
 
 @app.before_request
-def initialize_session():
-    if 'lists' not in session:
-        session['lists'] = []
+def load_session_manager():
+    g.session_manager = SessionPersistence(session) # manage our session data
 
 @app.route("/")
 def index():
