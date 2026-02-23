@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class DatabasePersistence:
     def __init__(self):
-       pass
+       self._setup_schema()
 
     @contextmanager
     def _database_connect(self):
@@ -20,6 +20,40 @@ class DatabasePersistence:
                 yield connection
         finally:
             connection.close()
+
+    def _setup_schema(self):
+        with self._database_connect() as conn:
+            with conn.cursor() as cursor:
+                # check if "lists" table exists
+                cursor.execute("""
+                    SELECT COUNT(*) FROM information_schema.tables
+                    WHERE table_schema = 'public' AND table_name = 'lists';
+                    """)
+                if cursor.fetchone()[0] == 0:
+                    cursor.execute("""
+                        CREATE TABLE lists (
+                            id serial PRIMARY KEY,
+                            title text NOT NULL UNIQUE
+                        );
+                        """)
+                # check if "todos" table exists
+                cursor.execute("""
+                    SELECT COUNT(*)
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public' AND table_name = 'todos';
+                """)
+
+                if cursor.fetchone()[0] == 0:
+                    cursor.execute("""
+                        CREATE TABLE todos (
+                            id serial PRIMARY KEY,
+                            title text NOT NULL,
+                            completed boolean NOT NULL DEFAULT false,
+                            list_id integer NOT NULL
+                                            REFERENCES lists (id)
+                                            ON DELETE CASCADE
+                        );
+                        """)
 
     def _find_todos_for_list(self, list_id):
         query = "SELECT * FROM todos WHERE list_id = %s;"
