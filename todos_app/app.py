@@ -110,22 +110,21 @@ def create_todo(lst, list_id):
 @app.route("/lists/<int:list_id>/todos/<int:todo_id>/toggle", methods=["POST"])
 @require_todo
 def update_todo_status(lst, todo, list_id, todo_id):
-   
-    g.storage.update_todo_status(list_id, todo_id)
+    is_completed = request.form['completed'] == 'True'
+    g.storage.update_todo_status(list_id, todo_id, is_completed)
     flash("The todo has been updated.", "success")
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route("/lists/<int:list_id>/todos/<int:todo_id>/delete", methods=["POST"])
 @require_todo
 def delete_todo(lst, todo, list_id, todo_id):
-    is_completed = request.form['completed'] == 'True'
-    g.storage.delete_todo_from_list(list_id, todo_id, is_completed)
+    g.storage.delete_todo_from_list(list_id, todo_id)
     flash("The todo has been deleted.", "success")
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route("/lists/<int:list_id>/complete_all", methods=["POST"])
 @require_list
-def mark_all_todos_completed(list_id):
+def mark_all_todos_completed(lst, list_id):
     g.storage.mark_all_todos_completed(list_id)
     flash("All todos have been updated.", "success")
     return redirect(url_for('show_list', list_id=list_id))
