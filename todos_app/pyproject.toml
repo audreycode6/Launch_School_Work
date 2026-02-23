@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "todos"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Todo application with psql database"
+authors = ["Audrey Theriault <audrey2699@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
