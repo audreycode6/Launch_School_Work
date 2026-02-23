@@ -57,23 +57,54 @@ class DatabasePersistence:
         return lst
     
     def create_new_list(self, title):
-        pass
+        query = 'INSERT INTO lists (title) VALUES (%s)'
+        logger.info('Executing query: %s with title: %s', query, title)
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (title,))
 
     def update_list_by_id(self, list_id, new_title):
-        pass
+        query = 'UPDATE lists SET title = %s WHERE id = %s'
+        logger.info('Executing query: %s with list_id: %s', query, list_id)
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (new_title, list_id))
 
     def delete_list(self, list_id):
-        pass
+        query = 'DELETE FROM lists WHERE id = %s'
+        logger.info('Executing query: %s with list_id: %s', query, list_id)
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (list_id,))
 
     def create_new_todo(self, list_id, todo_title):
-        pass
+        query = 'INSERT INTO todos (list_id, title) VALUES (%s, %s)'
+        logger.info('Executing query: %s with list_id: %s and todo_title: %s', 
+                    query, list_id, todo_title)
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (list_id, todo_title))
 
     def delete_todo_from_list(self, list_id, todo_id):
-        pass
+        query = 'DELETE * FROM todos WHERE list_id = %s and id = %s'
+        logger.info('Executing query: %s with list_id: %s and id: %s',
+                     query, list_id, todo_id)
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (list_id, todo_id,))
 
     def update_todo_status(self, list_id, todo_id, new_completed_status):
-        pass
+        query = 'UPDATE todos SET completed = %s WHERE list_id = %s and id = %s'
+        logger.info('Executing query: %s with new status: %s, list_id: %s and id: %s', 
+                    query, new_completed_status, list_id, todo_id)
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (new_completed_status, list_id, todo_id,))
 
     def mark_all_todos_completed(self, list_id):
-        pass
+        query = 'UPDATE todos SET completed = True WHERE list_id = %s'
+        logger.info('Executing query: %s with list_id: %s ', query, list_id)
+        with self._database_connect() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(query, (list_id,))
 
