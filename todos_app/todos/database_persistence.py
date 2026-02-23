@@ -120,7 +120,7 @@ class DatabasePersistence:
                 cursor.execute(query, (list_id, todo_title))
 
     def delete_todo_from_list(self, list_id, todo_id):
-        query = 'DELETE * FROM todos WHERE list_id = %s and id = %s'
+        query = 'DELETE FROM todos WHERE list_id = %s and id = %s'
         logger.info('Executing query: %s with list_id: %s and id: %s',
                      query, list_id, todo_id)
         with self._database_connect() as conn:
