@@ -16,7 +16,7 @@ def find_todo_by_id(todo_id, todos):
     return next((todo for todo in todos if todo['id'] == todo_id), None)
 
 def is_list_completed(lst):
-    return len(lst['todos']) > 0 and todos_remaining(lst) == 0
+    return lst['todos_count'] > 0 and lst['todos_remaining'] == 0
 
 def is_todo_completed(todo):
     return todo['completed']
