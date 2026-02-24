@@ -18,7 +18,6 @@ from todos.utils import (
     is_list_completed,
     is_todo_completed,
     sort_items,
-    todos_remaining,
 )
 
 from todos.database_persistence import DatabasePersistence
@@ -42,7 +41,8 @@ def require_todo(f):
     @require_list
     def decorated_function(lst, *args, **kwargs):
         todo_id = kwargs.get('todo_id')
-        todo = find_todo_by_id(todo_id, lst['todos'])
+        todos = g.storage.find_todos_for_list(lst['id'])
+        todo = find_todo_by_id(todo_id, todos)
         if not todo:
             raise NotFound(description="Todo not found")
         return f(lst=lst, todo=todo, *args, **kwargs)
@@ -67,8 +67,7 @@ def index():
 def get_lists():
     lists = sort_items(g.storage.all_lists(), is_list_completed)
     return render_template('lists.html',
-                           lists=lists,
-                           todos_remaining=todos_remaining)
+                           lists=lists)
 
 @app.route("/lists", methods=["POST"])
 def create_list():
@@ -91,10 +90,12 @@ def add_todo_list():
 @app.route("/lists/<int:list_id>")
 @require_list
 def show_list(lst, list_id):
-    lst['todos'] = sort_items(lst['todos'], is_todo_completed)
+    lst = g.storage.find_list(list_id)
+    todos_for_list = g.storage.find_todos_for_list(list_id)
+    lst['todos'] = sort_items(todos_for_list, is_todo_completed)
     return render_template('list.html', lst=lst)
 
-@app.route("/lists/<int:list_id>/todos", methods=["POST"])
+@app.route("/lists/<int:list_id>/todos", methods=["POST"])                 
 @require_list
 def create_todo(lst, list_id):
     todo_title = request.form["todo"].strip()
