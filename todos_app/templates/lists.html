@@ -7,7 +7,7 @@
       <li class="{{ 'complete' if is_list_completed(lst) else '' }}">
         <a href="{{ url_for('show_list', list_id=lst.id) }}"> 
           <h2>{{ lst.title }}</h2>
-          <p>{{ todos_remaining(lst) }} / {{ lst.todos | length }}</p>
+          <p>{{ lst.todos_remaining }} / {{ lst.todos_count }}</p>
         </a>
       </li>
       {% endfor %}
