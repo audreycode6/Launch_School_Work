@@ -56,3 +56,6 @@ coverage.xml
 
 # Editors / IDEs 
 .vscode/
+
+# Scratch work
+PY130/poet_proj/
